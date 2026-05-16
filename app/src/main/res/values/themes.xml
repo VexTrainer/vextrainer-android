@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme — Compose handles all real theming via VexTrainerTheme -->
+    <style name="Theme.VexTrainer" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
