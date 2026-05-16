@@ -1,0 +1,42 @@
+# Android Studio default entries
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Local device and deployment config
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+
+# Kotlin IDE runtime sessions
+.kotlin/
+
+# Signing keystore
+*.jks
+*.keystore
+release/
+
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.dex
+
+# Backup files
+*.bak
+
+# Zip files in source folders
+*.zip
+
+# Windows OS files
+Thumbs.db
