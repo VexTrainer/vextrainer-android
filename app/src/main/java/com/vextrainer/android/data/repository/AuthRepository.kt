@@ -18,6 +18,7 @@ class AuthRepository @Inject constructor(
     private val authApi: AuthApi,
     private val securePreferences: SecurePreferences
 ) {
+
     suspend fun login(identifier: String, password: String): Result<LoginData> = safeCall {
         val response = authApi.login(LoginRequestDto(identifier, password))
         if (response.success && response.data != null) {
@@ -27,7 +28,10 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun register(
-        userName: String, email: String, phone: String?, password: String
+        userName: String,
+        email: String,
+        phone: String?,
+        password: String
     ): Result<LoginData> = safeCall {
         val response = authApi.register(RegisterRequestDto(userName, email, phone, password))
         if (response.success && response.data != null) {
@@ -37,8 +41,17 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun logout(): Result<Unit> = safeCall {
-        try { authApi.logout() } catch (_: Exception) { /* best-effort */ }
+        // Clear the local session immediately — logout must always succeed locally
+        // regardless of whether the server-side invalidation call succeeds.
+        // This prevents the app from being stuck in a logged-in state if the API
+        // returns 401 because the token is already expired.
         securePreferences.clearAll()
+        try {
+            authApi.logout()
+        } catch (_: Exception) {
+            // Best-effort: server-side token invalidation. Failure is silently ignored
+            // because the local session has already been cleared.
+        }
         Result.success(Unit)
     }
 
@@ -60,13 +73,19 @@ class AuthRepository @Inject constructor(
         else Result.failure(Exception(response.message))
     }
 
+    // ── Accessors ─────────────────────────────────────────────────────────────
+
+    /** Expiry-aware: returns false if the stored token has passed its expiry timestamp. */
     fun isLoggedIn(): Boolean  = securePreferences.isLoggedIn()
     fun getUserName(): String? = securePreferences.getUserName()
     fun getEmail(): String?    = securePreferences.getEmail()
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private fun saveSession(dto: LoginDataDto) {
         securePreferences.saveToken(dto.token)
         securePreferences.saveRefreshToken(dto.refreshToken)
+        securePreferences.saveExpiryDate(dto.expiryDate)   // ← was previously missing
         securePreferences.saveUserId(dto.userId)
         securePreferences.saveUserName(dto.userName)
         securePreferences.saveEmail(dto.email)

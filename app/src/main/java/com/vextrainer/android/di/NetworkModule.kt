@@ -12,7 +12,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -26,19 +25,21 @@ object NetworkModule {
 
     private const val BASE_URL = "https://api.vextrainer.com/"
 
-    @Provides @Singleton
+    @Provides
+    @Singleton
     fun provideMoshi(): Moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
 
-    @Provides @Singleton
+    @Provides
+    @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
-        val dispatcher = Dispatcher().apply {
-            maxRequests = 1
-            maxRequestsPerHost = 1
-        }
+        // NOTE: The previous Dispatcher(maxRequests = 1, maxRequestsPerHost = 1) setting
+        // was serializing all network calls. This caused 225+ skipped frames and 4-second
+        // Davey warnings on startup because QuizCategories and Lesson/modules calls were
+        // forced to queue instead of running in parallel. Removed — OkHttp's default
+        // dispatcher (64 total / 5 per host) is correct for this app's usage pattern.
         return OkHttpClient.Builder()
-            .dispatcher(dispatcher)
             .addInterceptor(authInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
@@ -50,7 +51,8 @@ object NetworkModule {
             .build()
     }
 
-    @Provides @Singleton
+    @Provides
+    @Singleton
     fun provideRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit =
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -58,15 +60,23 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
-    @Provides @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+    @Provides
+    @Singleton
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
-    @Provides @Singleton
-    fun provideQuizApi(retrofit: Retrofit): QuizApi = retrofit.create(QuizApi::class.java)
+    @Provides
+    @Singleton
+    fun provideQuizApi(retrofit: Retrofit): QuizApi =
+        retrofit.create(QuizApi::class.java)
 
-    @Provides @Singleton
-    fun provideLessonApi(retrofit: Retrofit): LessonApi = retrofit.create(LessonApi::class.java)
+    @Provides
+    @Singleton
+    fun provideLessonApi(retrofit: Retrofit): LessonApi =
+        retrofit.create(LessonApi::class.java)
 
-    @Provides @Singleton
-    fun provideContactApi(retrofit: Retrofit): ContactApi = retrofit.create(ContactApi::class.java)
+    @Provides
+    @Singleton
+    fun provideContactApi(retrofit: Retrofit): ContactApi =
+        retrofit.create(ContactApi::class.java)
 }

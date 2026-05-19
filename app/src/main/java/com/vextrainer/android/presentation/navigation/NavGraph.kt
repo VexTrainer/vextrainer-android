@@ -3,6 +3,7 @@ package com.vextrainer.android.presentation.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,8 +39,23 @@ fun NavGraph(
     navController: NavHostController = rememberNavController(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
+    // isLoggedIn is now expiry-aware in SecurePreferences, so an outdated token
+    // on disk will correctly produce `false` here and send the user to Login.
     val startDestination = if (mainViewModel.isLoggedIn) Screen.QuizCategories.route
                            else Screen.Login.route
+
+    // ── Session-expired observer ───────────────────────────────────────────────
+    // AuthInterceptor calls SessionManager.notifySessionExpired() on a background
+    // thread whenever a 401 is received and the refresh token is also invalid.
+    // We collect that signal here and navigate to Login, clearing the entire
+    // back stack so the user cannot press Back to return to authenticated screens.
+    LaunchedEffect(navController) {
+        mainViewModel.sessionExpired.collect {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute   = backStackEntry?.destination?.route
@@ -72,8 +88,6 @@ fun NavGraph(
             }
 
             // ── Auth — Register ───────────────────────────────────────────
-            // onRegisterSuccess is removed — success is shown inline in the screen.
-            // The screen's "Go to Sign In" button pops back to Login.
             composable(
                 route     = Screen.Register.route,
                 arguments = listOf(
