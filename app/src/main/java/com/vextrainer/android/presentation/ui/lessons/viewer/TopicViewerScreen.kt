@@ -52,40 +52,32 @@ import com.vextrainer.android.domain.model.lesson.TopicDetails
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
 import com.vextrainer.android.presentation.components.VexTopAppBar
-import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
-import io.noties.markwon.MarkwonSpansFactory
-import io.noties.markwon.MarkwonVisitor
 import io.noties.markwon.syntax.Prism4jThemeDarkula
 import io.noties.markwon.syntax.Prism4jThemeDefault
 import io.noties.markwon.syntax.SyntaxHighlightPlugin
-// import io.noties.prism4j.GrammarLocatorDef
 import io.noties.prism4j.Prism4j
-import org.commonmark.node.FencedCodeBlock
 import io.noties.markwon.image.picasso.PicassoImagesPlugin
-
-// ── Screen ────────────────────────────────────────────────────────────────────
 
 @Composable
 fun TopicViewerScreen(
     onPrevious: (topicId: Int) -> Unit,
     onNext: (topicId: Int) -> Unit,
-    onBack: () -> Unit,
+    onBack: () -> Unit,         // retained for NavGraph compat; VexTopAppBar ignores it
+    onHomeClick: () -> Unit,
     viewModel: TopicViewerViewModel = hiltViewModel()
 ) {
-    val uiState  by viewModel.uiState.collectAsStateWithLifecycle()
-    val context   = LocalContext.current
-    val isDark    = isSystemInDarkTheme()
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val state   by uiState
+    val context  = LocalContext.current
+    val isDark   = isSystemInDarkTheme()
 
-    // Rebuild Markwon when dark/light mode changes so code block theme updates
     val markwon = remember(context, isDark) {
-        // val prism4j    = Prism4j(GrammarLocatorDef())
         val prism4j = Prism4j(object : io.noties.prism4j.GrammarLocator {
             override fun grammar(prism4j: Prism4j, language: String) = null
             override fun languages(): MutableSet<String> = mutableSetOf()
         })
-        val codeTheme  = if (isDark) Prism4jThemeDarkula.create()
-                         else        Prism4jThemeDefault.create()
+        val codeTheme = if (isDark) Prism4jThemeDarkula.create() else Prism4jThemeDefault.create()
         Markwon.builder(context)
             .usePlugin(PicassoImagesPlugin.create(context))
             .usePlugin(SyntaxHighlightPlugin.create(prism4j, codeTheme))
@@ -95,10 +87,10 @@ fun TopicViewerScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title   = uiState.topic?.topicTitle ?: "",
-                onBack  = onBack,
-                actions = {
-                    if (uiState.isRead) {
+                title       = state.topic?.topicTitle ?: "",
+                onLogoClick = onHomeClick,
+                actions     = {
+                    if (state.isRead) {
                         Icon(
                             imageVector        = Icons.Default.CheckCircle,
                             contentDescription = stringResource(R.string.topic_read_label),
@@ -116,33 +108,31 @@ fun TopicViewerScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoadingMeta  -> LoadingOverlay()
+                state.isLoadingMeta -> LoadingOverlay()
 
-                uiState.metaError != null -> ErrorCard(
-                    message = uiState.metaError!!.asString(),
+                state.metaError != null -> ErrorCard(
+                    message = state.metaError!!.asString(),
                     onRetry = viewModel::retryMeta
                 )
 
-                uiState.topic != null -> TopicContent(
-                    topic            = uiState.topic!!,
-                    markdownContent  = uiState.markdownContent,
-                    isLoadingContent = uiState.isLoadingContent,
-                    contentError     = uiState.contentError?.asString(),
-                    isRead           = uiState.isRead,
-                    isMarkingRead    = uiState.isMarkingRead,
+                state.topic != null -> TopicContent(
+                    topic            = state.topic!!,
+                    markdownContent  = state.markdownContent,
+                    isLoadingContent = state.isLoadingContent,
+                    contentError     = state.contentError?.asString(),
+                    isRead           = state.isRead,
+                    isMarkingRead    = state.isMarkingRead,
                     markwon          = markwon,
                     isDark           = isDark,
                     onMarkRead       = viewModel::markAsRead,
-                    onPrevious       = { uiState.topic?.previousTopicId?.let(onPrevious) },
-                    onNext           = { uiState.topic?.nextTopicId?.let(onNext) },
+                    onPrevious       = { state.topic?.previousTopicId?.let(onPrevious) },
+                    onNext           = { state.topic?.nextTopicId?.let(onNext) },
                     onRetryContent   = { viewModel.retryContent() }
                 )
             }
         }
     }
 }
-
-// ── Content ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun TopicContent(
@@ -159,12 +149,9 @@ private fun TopicContent(
     onNext: () -> Unit,
     onRetryContent: () -> Unit
 ) {
-    // Capture theme colors in composable scope — passed into AndroidView update lambda
-    val textColorInt = MaterialTheme.colorScheme.onBackground.toArgb()
-    val bgColorInt   = MaterialTheme.colorScheme.background.toArgb()
-
-    // Code block background: slightly offset from page background
-    val codeBlockBgInt = if (isDark) 0xFF1E1E1E.toInt() else 0xFFF5F5F5.toInt()
+    val textColorInt  = MaterialTheme.colorScheme.onBackground.toArgb()
+    val bgColorInt    = MaterialTheme.colorScheme.background.toArgb()
+    val codeBlockBgInt   = if (isDark) 0xFF1E1E1E.toInt() else 0xFFF5F5F5.toInt()
     val codeBlockTextInt = if (isDark) 0xFFD4D4D4.toInt() else 0xFF212121.toInt()
 
     Column(
@@ -173,60 +160,32 @@ private fun TopicContent(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // ── Breadcrumb ────────────────────────────────────────────────────
         Text(
             text  = "${topic.moduleName}  ›  ${topic.lessonTitle}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
         Spacer(Modifier.height(12.dp))
 
-        // ── Markdown content ──────────────────────────────────────────────
         when {
             isLoadingContent -> {
-                Box(
-                    modifier         = Modifier.fillMaxWidth().height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text  = stringResource(R.string.topic_loading_content),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
                 }
             }
-
             contentError != null -> {
-                Text(
-                    text      = contentError,
-                    color     = MaterialTheme.colorScheme.error,
-                    style     = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier  = Modifier.fillMaxWidth()
-                )
+                Text(text = contentError,
+                     style = MaterialTheme.typography.bodyMedium,
+                     color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick  = onRetryContent,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
+                OutlinedButton(onClick = onRetryContent) {
                     Text(stringResource(R.string.action_retry))
                 }
             }
-
             markdownContent.isNotBlank() -> {
-
-                // ── Inline markdown (paragraphs, headings, bold, etc.) ─────
-                // Rendered in a single TextView for normal text.
-                // Code blocks are separated out and each placed in its own
-                // HorizontalScrollView so long lines can scroll independently.
+                val segments = splitMarkdownSegments(markdownContent)
                 AndroidView(
                     factory = { ctx ->
-                        // Root container — vertical LinearLayout
                         LinearLayout(ctx).apply {
                             orientation = LinearLayout.VERTICAL
                             layoutParams = LinearLayout.LayoutParams(
@@ -237,14 +196,8 @@ private fun TopicContent(
                     },
                     update = { container ->
                         container.removeAllViews()
-                        container.setBackgroundColor(bgColorInt)
-
-                        // Split markdown into segments: normal text vs fenced code blocks
-                        val segments = splitMarkdownSegments(markdownContent)
-
                         segments.forEach { segment ->
                             if (segment.isCode) {
-                                // Code block: wrap in HorizontalScrollView
                                 val scrollView = HorizontalScrollView(container.context).apply {
                                     isHorizontalScrollBarEnabled = true
                                     layoutParams = LinearLayout.LayoutParams(
@@ -255,23 +208,20 @@ private fun TopicContent(
                                     setPadding(24, 20, 24, 20)
                                 }
                                 val codeView = TextView(container.context).apply {
-                                    textSize        = 13f
-                                    typeface        = Typeface.MONOSPACE
+                                    textSize = 13f
+                                    typeface = Typeface.MONOSPACE
                                     setTextColor(codeBlockTextInt)
                                     setBackgroundColor(codeBlockBgInt)
-                                    // Do not wrap — let horizontal scroll handle long lines
                                     setSingleLine(false)
                                     layoutParams = LinearLayout.LayoutParams(
                                         LinearLayout.LayoutParams.WRAP_CONTENT,
                                         LinearLayout.LayoutParams.WRAP_CONTENT
                                     )
                                 }
-                                // Use markwon to render (applies syntax highlighting if lang tag present)
                                 markwon.setMarkdown(codeView, segment.text)
                                 scrollView.addView(codeView)
                                 container.addView(scrollView)
                             } else {
-                                // Normal text: standard TextView
                                 val textView = TextView(container.context).apply {
                                     textSize = 16f
                                     setTextColor(textColorInt)
@@ -294,25 +244,18 @@ private fun TopicContent(
 
         Spacer(Modifier.height(24.dp))
 
-        // ── Mark as read ──────────────────────────────────────────────────
         if (!isRead) {
             Button(
                 onClick  = onMarkRead,
                 enabled  = !isMarkingRead,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                if (isMarkingRead) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(20.dp),
-                        color       = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text  = stringResource(R.string.topic_mark_read_button),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+                if (isMarkingRead)
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                else
+                    Text(text = stringResource(R.string.topic_mark_read_button),
+                         style = MaterialTheme.typography.labelLarge)
             }
         } else {
             Row(
@@ -320,77 +263,48 @@ private fun TopicContent(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector        = Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint               = Color(0xFF2E7D32),
-                    modifier           = Modifier.size(20.dp)
-                )
+                Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null,
+                     tint = Color(0xFF2E7D32), modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(6.dp))
-                Text(
-                    text       = stringResource(R.string.topic_marked_read),
-                    style      = MaterialTheme.typography.bodyMedium,
-                    color      = Color(0xFF2E7D32),
-                    fontWeight = FontWeight.SemiBold
-                )
+                Text(text = stringResource(R.string.topic_marked_read),
+                     style = MaterialTheme.typography.bodyMedium,
+                     color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // ── Prev / Next ───────────────────────────────────────────────────
         Row(
             modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             if (topic.previousTopicId != null) {
-                OutlinedButton(
-                    onClick  = onPrevious,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.topic_prev_button),
-                        modifier           = Modifier.size(18.dp)
-                    )
+                OutlinedButton(onClick = onPrevious, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                         contentDescription = stringResource(R.string.topic_prev_button),
+                         modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(text = stringResource(R.string.topic_prev_button), maxLines = 1)
                 }
-            } else {
-                Spacer(Modifier.weight(1f))
-            }
+            } else { Spacer(Modifier.weight(1f)) }
 
             Spacer(Modifier.width(12.dp))
 
             if (topic.nextTopicId != null) {
-                Button(
-                    onClick  = onNext,
-                    modifier = Modifier.weight(1f)
-                ) {
+                Button(onClick = onNext, modifier = Modifier.weight(1f)) {
                     Text(text = stringResource(R.string.topic_next_button), maxLines = 1)
                     Spacer(Modifier.width(4.dp))
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = stringResource(R.string.topic_next_button),
-                        modifier           = Modifier.size(18.dp)
-                    )
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward,
+                         contentDescription = stringResource(R.string.topic_next_button),
+                         modifier = Modifier.size(18.dp))
                 }
-            } else {
-                Spacer(Modifier.weight(1f))
-            }
+            } else { Spacer(Modifier.weight(1f)) }
         }
 
         Spacer(Modifier.height(24.dp))
     }
 }
 
-// ── Markdown segmenter ────────────────────────────────────────────────────────
-
-/**
- * Splits raw markdown into alternating normal-text and fenced-code-block segments.
- * Each fenced code block (``` ... ```) becomes its own segment with isCode=true
- * and is wrapped in a HorizontalScrollView so long lines can scroll independently.
- */
 private data class MarkdownSegment(val text: String, val isCode: Boolean)
 
 private fun splitMarkdownSegments(markdown: String): List<MarkdownSegment> {
@@ -403,7 +317,6 @@ private fun splitMarkdownSegments(markdown: String): List<MarkdownSegment> {
     for (line in lines) {
         val trimmed = line.trimStart()
         if (!inCode && (trimmed.startsWith("```") || trimmed.startsWith("~~~"))) {
-            // Flush normal text collected so far
             val normal = buffer.toString().trim()
             if (normal.isNotEmpty()) segments.add(MarkdownSegment(normal, false))
             buffer.clear()
@@ -411,7 +324,6 @@ private fun splitMarkdownSegments(markdown: String): List<MarkdownSegment> {
             codeFence = if (trimmed.startsWith("```")) "```" else "~~~"
             buffer.appendLine(line)
         } else if (inCode && trimmed.startsWith(codeFence)) {
-            // End of code block — include closing fence, flush as code segment
             buffer.appendLine(line)
             segments.add(MarkdownSegment(buffer.toString().trim(), true))
             buffer.clear()
@@ -420,12 +332,7 @@ private fun splitMarkdownSegments(markdown: String): List<MarkdownSegment> {
             buffer.appendLine(line)
         }
     }
-
-    // Flush any remaining content
     val remaining = buffer.toString().trim()
-    if (remaining.isNotEmpty()) {
-        segments.add(MarkdownSegment(remaining, inCode)) // inCode=true means unclosed fence
-    }
-
+    if (remaining.isNotEmpty()) segments.add(MarkdownSegment(remaining, inCode))
     return segments
 }

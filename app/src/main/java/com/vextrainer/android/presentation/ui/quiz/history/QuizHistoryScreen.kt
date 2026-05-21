@@ -42,17 +42,16 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 @Composable
 fun QuizHistoryScreen(
     onAttemptClick: (attemptId: Int) -> Unit,
-    onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: QuizHistoryViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberLazyListState()
+    val uiState   by viewModel.uiState.collectAsStateWithLifecycle()
+    val listState  = rememberLazyListState()
 
-    // Trigger load more when near the bottom
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val total = listState.layoutInfo.totalItemsCount
+            val total       = listState.layoutInfo.totalItemsCount
             lastVisible >= total - 3 && uiState.hasMore && !uiState.isLoadingMore
         }
     }
@@ -64,8 +63,8 @@ fun QuizHistoryScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title = stringResource(R.string.quiz_history_title),
-                onBack = onBack
+                title       = stringResource(R.string.quiz_history_title),
+                onLogoClick = onHomeClick
             )
         }
     ) { paddingValues ->
@@ -83,40 +82,33 @@ fun QuizHistoryScreen(
                 )
 
                 uiState.attempts.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = stringResource(R.string.quiz_history_empty),
+                        text      = stringResource(R.string.quiz_history_empty),
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(24.dp)
+                        style     = MaterialTheme.typography.bodyLarge,
+                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier  = Modifier.padding(24.dp)
                     )
                 }
 
                 else -> LazyColumn(
-                    state = listState,
+                    state          = listState,
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(
-                        items = uiState.attempts,
-                        key   = { it.attemptId }
-                    ) { attempt ->
+                    items(items = uiState.attempts, key = { it.attemptId }) { attempt ->
                         HistoryItemCard(
                             attempt = attempt,
                             onClick = { onAttemptClick(attempt.attemptId) }
                         )
                     }
-
-                    // Loading more spinner
                     if (uiState.isLoadingMore) {
                         item {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
+                                modifier         = Modifier.fillMaxWidth().padding(8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
@@ -130,66 +122,39 @@ fun QuizHistoryScreen(
 }
 
 @Composable
-private fun HistoryItemCard(
-    attempt: QuizHistoryItem,
-    onClick: () -> Unit
-) {
+private fun HistoryItemCard(attempt: QuizHistoryItem, onClick: () -> Unit) {
     ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        onClick   = onClick,
+        modifier  = Modifier.fillMaxWidth(),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-
-            Text(
-                text = attempt.quizTitle,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
+            Text(text = attempt.quizTitle, style = MaterialTheme.typography.titleLarge,
+                 color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(2.dp))
-
-            Text(
-                text = attempt.categoryName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
+            Text(text = attempt.categoryName, style = MaterialTheme.typography.bodyMedium,
+                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))
-
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                verticalAlignment      = Alignment.CenterVertically,
+                horizontalArrangement  = Arrangement.SpaceBetween,
+                modifier               = Modifier.fillMaxWidth()
             ) {
                 if (!attempt.isCompleted) {
-                    Text(
-                        text = stringResource(R.string.quiz_in_progress),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    Text(text = stringResource(R.string.quiz_in_progress),
+                         style = MaterialTheme.typography.labelLarge,
+                         color = MaterialTheme.colorScheme.secondary)
                 } else {
                     PassFailChip(passed = (attempt.score ?: 0.0) >= 70.0)
-
                     attempt.score?.let { score ->
-                        Text(
-                            text = stringResource(
-                                R.string.quiz_score_label,
-                                "%.0f".format(score)
-                            ),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Text(text = stringResource(R.string.quiz_score_label, "%.0f".format(score)),
+                             style = MaterialTheme.typography.bodyLarge,
+                             color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
-
                 attempt.completedDate?.let { date ->
-                    // Show just the date portion (ISO string is yyyy-MM-ddT...)
-                    Text(
-                        text = date.take(10),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(text = date.take(10), style = MaterialTheme.typography.bodySmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -42,7 +42,7 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 @Composable
 fun TopicListScreen(
     onTopicClick: (topicId: Int) -> Unit,
-    onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: TopicListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -50,8 +50,8 @@ fun TopicListScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title = uiState.lessonTitle.ifBlank { stringResource(R.string.topic_list_title) },
-                onBack = onBack
+                title       = uiState.lessonTitle.ifBlank { stringResource(R.string.topic_list_title) },
+                onLogoClick = onHomeClick
             )
         }
     ) { paddingValues ->
@@ -69,26 +69,21 @@ fun TopicListScreen(
                 )
 
                 uiState.topics.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.topic_list_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+                    Text(text = stringResource(R.string.topic_list_empty),
+                         style = MaterialTheme.typography.bodyLarge,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                         textAlign = TextAlign.Center)
                 }
 
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.topics, key = { it.topicId }) { topic ->
-                        TopicRow(
-                            topic = topic,
-                            onClick = { onTopicClick(topic.topicId) }
-                        )
+                        TopicRow(topic = topic, onClick = { onTopicClick(topic.topicId) })
                     }
                 }
             }
@@ -97,17 +92,14 @@ fun TopicListScreen(
 }
 
 @Composable
-private fun TopicRow(
-    topic: TopicSummary,
-    onClick: () -> Unit
-) {
+private fun TopicRow(topic: TopicSummary, onClick: () -> Unit) {
     ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier
+        onClick   = onClick,
+        modifier  = Modifier
             .fillMaxWidth()
             .padding(start = if (topic.isSubTopic) 16.dp else 0.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.elevatedCardColors(
+        colors    = CardDefaults.elevatedCardColors(
             containerColor = if (topic.isRead)
                 MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             else
@@ -115,41 +107,29 @@ private fun TopicRow(
         )
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = topic.topicTitle,
-                    style = if (topic.isSubTopic) MaterialTheme.typography.bodyLarge
-                            else MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(text = topic.topicTitle,
+                     style = if (topic.isSubTopic) MaterialTheme.typography.bodyLarge
+                             else MaterialTheme.typography.titleLarge,
+                     color = MaterialTheme.colorScheme.onSurface,
+                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 topic.parentTopicTitle?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(text = it, style = MaterialTheme.typography.bodySmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             Spacer(Modifier.width(8.dp))
             if (topic.isRead) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = stringResource(R.string.topic_read_label),
-                    tint = Color(0xFF2E7D32),
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(imageVector = Icons.Default.CheckCircle,
+                     contentDescription = stringResource(R.string.topic_read_label),
+                     tint = Color(0xFF2E7D32), modifier = Modifier.size(20.dp))
             } else {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = stringResource(R.string.cd_navigate_forward),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                     contentDescription = stringResource(R.string.cd_navigate_forward),
+                     tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             }
         }
     }

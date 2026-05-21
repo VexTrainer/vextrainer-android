@@ -3,17 +3,16 @@ package com.vextrainer.android.presentation.ui.quiz.results
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -42,13 +41,17 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 fun QuizResultScreen(
     onRetakeQuiz: () -> Unit,
     onDone: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: QuizResultViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            VexTopAppBar(title = stringResource(R.string.quiz_result_title))
+            VexTopAppBar(
+                title       = stringResource(R.string.quiz_result_title),
+                onLogoClick = onHomeClick
+            )
         }
     ) { paddingValues ->
         Box(
@@ -83,88 +86,50 @@ private fun ResultContent(
     val summary = results.summary
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+        modifier       = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // ── Score summary header ──────────────────────────────────────────
         item {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier            = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = summary.quizTitle,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
+                Text(text = summary.quizTitle, style = MaterialTheme.typography.headlineMedium,
+                     fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                     color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(20.dp))
-
-                ScoreBadge(
-                    score        = summary.score ?: 0.0,
-                    passingScore = summary.passingScore
-                )
-
+                ScoreBadge(score = summary.score ?: 0.0, passingScore = summary.passingScore)
                 Spacer(Modifier.height(12.dp))
-
                 PassFailChip(passed = summary.passed)
-
                 Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(
-                        R.string.quiz_correct_answers,
-                        summary.correctAnswers,
-                        summary.totalQuestions
-                    ),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
+                Text(text = stringResource(R.string.quiz_correct_answers,
+                    summary.correctAnswers, summary.totalQuestions),
+                     style = MaterialTheme.typography.bodyLarge,
+                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(20.dp))
-
-                // ── Action buttons ────────────────────────────────────────
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = onDone,
-                        modifier = Modifier.weight(1f).height(48.dp)
-                    ) {
+                    OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f).height(48.dp)) {
                         Text(stringResource(R.string.quiz_done_button))
                     }
-                    Button(
-                        onClick = onRetakeQuiz,
-                        modifier = Modifier.weight(1f).height(48.dp)
-                    ) {
+                    Button(onClick = onRetakeQuiz, modifier = Modifier.weight(1f).height(48.dp)) {
                         Text(stringResource(R.string.quiz_retake_button))
                     }
                 }
-
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
-
-                Text(
-                    text = stringResource(R.string.quiz_review_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                )
+                Text(text = stringResource(R.string.quiz_review_title),
+                     style = MaterialTheme.typography.titleLarge,
+                     fontWeight = FontWeight.Bold,
+                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
             }
         }
 
-        // ── Per-question breakdown ────────────────────────────────────────
-        itemsIndexed(
-            items = results.questions,
-            key   = { _, q -> q.questionId }
-        ) { index, question ->
+        itemsIndexed(items = results.questions, key = { _, q -> q.questionId }) { index, question ->
             QuestionResultRow(result = question, index = index)
         }
 

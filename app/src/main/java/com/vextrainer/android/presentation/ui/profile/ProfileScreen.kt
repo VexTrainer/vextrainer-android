@@ -58,9 +58,10 @@ fun ProfileScreen(
     onPrivacy: () -> Unit,
     onDonate: () -> Unit,
     onDeleteAccount: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState          by viewModel.uiState.collectAsStateWithLifecycle()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -74,9 +75,9 @@ fun ProfileScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title   = { Text(stringResource(R.string.profile_logout_confirm_title)) },
-            text    = { Text(stringResource(R.string.profile_logout_confirm_message)) },
-            confirmButton = {
+            title            = { Text(stringResource(R.string.profile_logout_confirm_title)) },
+            text             = { Text(stringResource(R.string.profile_logout_confirm_message)) },
+            confirmButton    = {
                 TextButton(
                     onClick = { showLogoutDialog = false; viewModel.logout() },
                     colors  = ButtonDefaults.textButtonColors(
@@ -93,7 +94,12 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        topBar = { VexTopAppBar(title = stringResource(R.string.profile_title)) }
+        topBar = {
+            VexTopAppBar(
+                title       = stringResource(R.string.profile_title),
+                onLogoClick = onHomeClick
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -103,7 +109,6 @@ fun ProfileScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             // ── Account card ──────────────────────────────────────────────
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -115,31 +120,20 @@ fun ProfileScreen(
                     modifier          = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector        = Icons.Default.Person,
-                        contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.primary,
-                        modifier           = Modifier.size(40.dp)
-                    )
+                    Icon(imageVector = Icons.Default.Person, contentDescription = null,
+                         tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(
-                            text  = stringResource(R.string.profile_signed_in_as),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Text(
-                            text       = uiState.userName.ifBlank { uiState.email },
-                            style      = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color      = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text(text = stringResource(R.string.profile_signed_in_as),
+                             style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(text = uiState.userName.ifBlank { uiState.email },
+                             style = MaterialTheme.typography.titleLarge,
+                             fontWeight = FontWeight.SemiBold,
+                             color = MaterialTheme.colorScheme.onPrimaryContainer)
                         if (uiState.email.isNotBlank() && uiState.userName.isNotBlank()) {
-                            Text(
-                                text  = uiState.email,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
+                            Text(text = uiState.email, style = MaterialTheme.typography.bodySmall,
+                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                         }
                     }
                 }
@@ -147,49 +141,34 @@ fun ProfileScreen(
 
             // ── App section ───────────────────────────────────────────────
             SectionHeader(stringResource(R.string.profile_section_app))
-
             MenuCard {
-                ProfileMenuItem(
-                    icon    = Icons.Default.Info,
-                    label   = stringResource(R.string.about_title),
-                    onClick = onAbout
-                )
+                ProfileMenuItem(icon = Icons.Default.Info,
+                    label = stringResource(R.string.about_title), onClick = onAbout)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                ProfileMenuItem(
-                    icon    = Icons.Default.Mail,
-                    label   = stringResource(R.string.contact_title),
-                    onClick = onContactUs
-                )
+                ProfileMenuItem(icon = Icons.Default.Mail,
+                    label = stringResource(R.string.contact_title), onClick = onContactUs)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                ProfileMenuItem(
-                    icon    = Icons.Default.PrivacyTip,
-                    label   = stringResource(R.string.privacy_title),
-                    onClick = onPrivacy
-                )
+                ProfileMenuItem(icon = Icons.Default.PrivacyTip,
+                    label = stringResource(R.string.privacy_title), onClick = onPrivacy)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                ProfileMenuItem(
-                    icon    = Icons.Default.VolunteerActivism,
-                    label   = stringResource(R.string.donate_title),
-                    onClick = onDonate
-                )
+                ProfileMenuItem(icon = Icons.Default.VolunteerActivism,
+                    label = stringResource(R.string.donate_title), onClick = onDonate)
             }
 
             // ── Account section ───────────────────────────────────────────
             SectionHeader(stringResource(R.string.profile_section_account))
-
             MenuCard {
                 ProfileMenuItem(
-                    icon    = Icons.Default.DeleteForever,
-                    label   = stringResource(R.string.profile_delete_account),
+                    icon     = Icons.Default.DeleteForever,
+                    label    = stringResource(R.string.profile_delete_account),
                     sublabel = stringResource(R.string.profile_delete_account_desc),
                     iconTint = MaterialTheme.colorScheme.error,
-                    onClick = onDeleteAccount
+                    onClick  = onDeleteAccount
                 )
             }
 
             Spacer(Modifier.height(8.dp))
 
-            // ── Sign out button ───────────────────────────────────────────
             Button(
                 onClick  = { showLogoutDialog = true },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -197,10 +176,8 @@ fun ProfileScreen(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text(
-                    text  = stringResource(R.string.profile_logout_button),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Text(text = stringResource(R.string.profile_logout_button),
+                     style = MaterialTheme.typography.labelLarge)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -208,29 +185,20 @@ fun ProfileScreen(
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 @Composable
 private fun SectionHeader(title: String) {
-    Text(
-        text     = title.uppercase(),
-        style    = MaterialTheme.typography.labelLarge,
-        color    = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 4.dp)
-    )
+    Text(text = title.uppercase(), style = MaterialTheme.typography.labelLarge,
+         color = MaterialTheme.colorScheme.onSurfaceVariant,
+         modifier = Modifier.padding(horizontal = 4.dp))
 }
 
 @Composable
 private fun MenuCard(content: @Composable () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        modifier  = Modifier.fillMaxWidth(),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        content()
-    }
+    ) { content() }
 }
 
 @Composable
@@ -242,38 +210,25 @@ private fun ProfileMenuItem(
     iconTint: Color = MaterialTheme.colorScheme.primary
 ) {
     Row(
-        modifier = Modifier
+        modifier          = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector        = icon,
-            contentDescription = null,
-            tint               = iconTint,
-            modifier           = Modifier.size(22.dp)
-        )
+        Icon(imageVector = icon, contentDescription = null,
+             tint = iconTint, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text  = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Text(text = label, style = MaterialTheme.typography.bodyLarge,
+                 color = MaterialTheme.colorScheme.onSurface)
             sublabel?.let {
-                Text(
-                    text  = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(text = it, style = MaterialTheme.typography.bodySmall,
+                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Icon(
-            imageVector        = Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = stringResource(R.string.cd_navigate_forward),
-            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier           = Modifier.size(18.dp)
-        )
+        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+             contentDescription = stringResource(R.string.cd_navigate_forward),
+             tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
     }
 }

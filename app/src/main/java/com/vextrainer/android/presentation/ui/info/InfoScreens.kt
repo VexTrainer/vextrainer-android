@@ -93,6 +93,7 @@ private fun MarkdownContentScreen(
     contentUrl: String,
     fallbackMarkdown: String,
     onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     bottomContent: @Composable (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -102,8 +103,7 @@ private fun MarkdownContentScreen(
     var isLoading by remember { mutableStateOf(true) }
     var isOffline by remember { mutableStateOf(false) }
 
-    val markwon = remember(context, isDark) { Markwon.builder(context).build() }
-
+    val markwon      = remember(context, isDark) { Markwon.builder(context).build() }
     val textColorInt = MaterialTheme.colorScheme.onBackground.toArgb()
     val bgColorInt   = MaterialTheme.colorScheme.background.toArgb()
 
@@ -121,7 +121,12 @@ private fun MarkdownContentScreen(
     }
 
     Scaffold(
-        topBar = { VexTopAppBar(title = title, onBack = onBack) }
+        topBar = {
+            VexTopAppBar(
+                title       = title,
+                onLogoClick = onHomeClick
+            )
+        }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
@@ -177,7 +182,10 @@ private fun MarkdownContentScreen(
 // ── About ─────────────────────────────────────────────────────────────────────
 
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(
+    onBack: () -> Unit,
+    onHomeClick: () -> Unit
+) {
     val context    = LocalContext.current
     val fallback   = stringResource(R.string.about_fallback, BuildConfig.VERSION_NAME)
     val contentUrl = stringResource(R.string.about_content_url)
@@ -188,16 +196,15 @@ fun AboutScreen(onBack: () -> Unit) {
         contentUrl       = contentUrl,
         fallbackMarkdown = fallback,
         onBack           = onBack,
+        onHomeClick      = onHomeClick,
         bottomContent    = {
             OutlinedButton(
                 onClick  = { openUrl(context, websiteUrl) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    Icons.Default.OpenInBrowser,
-                    contentDescription = stringResource(R.string.cd_external_link),
-                    modifier           = Modifier.size(18.dp)
-                )
+                Icon(Icons.Default.OpenInBrowser,
+                     contentDescription = stringResource(R.string.cd_external_link),
+                     modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(websiteUrl)
             }
@@ -208,19 +215,26 @@ fun AboutScreen(onBack: () -> Unit) {
 // ── Privacy ───────────────────────────────────────────────────────────────────
 
 @Composable
-fun PrivacyScreen(onBack: () -> Unit) {
+fun PrivacyScreen(
+    onBack: () -> Unit,
+    onHomeClick: () -> Unit
+) {
     MarkdownContentScreen(
         title            = stringResource(R.string.privacy_title),
         contentUrl       = stringResource(R.string.privacy_content_url),
         fallbackMarkdown = stringResource(R.string.privacy_fallback),
-        onBack           = onBack
+        onBack           = onBack,
+        onHomeClick      = onHomeClick
     )
 }
 
 // ── Donate ────────────────────────────────────────────────────────────────────
 
 @Composable
-fun DonateScreen(onBack: () -> Unit) {
+fun DonateScreen(
+    onBack: () -> Unit,
+    onHomeClick: () -> Unit
+) {
     val context   = LocalContext.current
     val donateUrl = stringResource(R.string.donate_url)
 
@@ -229,21 +243,17 @@ fun DonateScreen(onBack: () -> Unit) {
         contentUrl       = stringResource(R.string.donate_content_url),
         fallbackMarkdown = stringResource(R.string.donate_fallback),
         onBack           = onBack,
+        onHomeClick      = onHomeClick,
         bottomContent    = {
             Button(
                 onClick  = { openUrl(context, donateUrl) },
                 modifier = Modifier.fillMaxWidth().height(54.dp)
             ) {
-                Icon(
-                    Icons.Default.OpenInBrowser,
-                    contentDescription = null,
-                    modifier           = Modifier.size(20.dp)
-                )
-                Text(
-                    text     = stringResource(R.string.donate_button_label),
-                    modifier = Modifier.padding(start = 8.dp),
-                    style    = MaterialTheme.typography.titleLarge
-                )
+                Icon(Icons.Default.OpenInBrowser, contentDescription = null,
+                     modifier = Modifier.size(20.dp))
+                Text(text = stringResource(R.string.donate_button_label),
+                     modifier = Modifier.padding(start = 8.dp),
+                     style = MaterialTheme.typography.titleLarge)
             }
         }
     )
@@ -254,6 +264,7 @@ fun DonateScreen(onBack: () -> Unit) {
 @Composable
 fun ContactUsScreen(
     onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     sendContactMessage: SendContactMessageUseCase = hiltViewModel<ContactUsViewModel>().sendUseCase
 ) {
     val focusManager = LocalFocusManager.current
@@ -271,10 +282,10 @@ fun ContactUsScreen(
     var isSending  by remember { mutableStateOf(false) }
     var sent       by remember { mutableStateOf(false) }
 
-    val maxChars    = 2000
-    val errorMsg    = stringResource(R.string.contact_error_message)
-    val successMsg  = stringResource(R.string.contact_success)
-    val unknownErr  = stringResource(R.string.error_unknown)
+    val maxChars   = 2000
+    val errorMsg   = stringResource(R.string.contact_error_message)
+    val successMsg = stringResource(R.string.contact_success)
+    val unknownErr = stringResource(R.string.error_unknown)
 
     fun sendMessage() {
         msgError = if (message.isBlank()) errorMsg else null
@@ -283,9 +294,7 @@ fun ContactUsScreen(
         scope.launch {
             sendContactMessage(category, message)
                 .onSuccess {
-                    isSending = false
-                    sent      = true
-                    message   = ""
+                    isSending = false; sent = true; message = ""
                     snackbar.showSnackbar(successMsg)
                 }
                 .onFailure { e ->
@@ -296,7 +305,12 @@ fun ContactUsScreen(
     }
 
     Scaffold(
-        topBar       = { VexTopAppBar(title = stringResource(R.string.contact_title), onBack = onBack) },
+        topBar       = {
+            VexTopAppBar(
+                title       = stringResource(R.string.contact_title),
+                onLogoClick = onHomeClick
+            )
+        },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
         Column(
@@ -307,7 +321,6 @@ fun ContactUsScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ── Sender info (read-only) ───────────────────────────────────
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors   = CardDefaults.cardColors(
@@ -315,27 +328,20 @@ fun ContactUsScreen(
                 )
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text  = profileState.userName.ifBlank { "—" },
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text  = profileState.email.ifBlank { "—" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(text = profileState.userName.ifBlank { "—" },
+                         style = MaterialTheme.typography.bodyLarge,
+                         color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = profileState.email.ifBlank { "—" },
+                         style = MaterialTheme.typography.bodySmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
-            // ── Category picker ───────────────────────────────────────────
             Column {
-                Text(
-                    text     = stringResource(R.string.contact_field_subject),
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
+                Text(text = stringResource(R.string.contact_field_subject),
+                     style = MaterialTheme.typography.bodySmall,
+                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                     modifier = Modifier.padding(bottom = 6.dp))
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -358,67 +364,47 @@ fun ContactUsScreen(
                                     MaterialTheme.colorScheme.surface
                             )
                         ) {
-                            Text(
-                                text       = option,
-                                style      = MaterialTheme.typography.labelLarge,
-                                color      = if (selected)
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurface,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-                            )
+                            Text(text = option, style = MaterialTheme.typography.labelLarge,
+                                 color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+                                         else MaterialTheme.colorScheme.onSurface,
+                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
                         }
                     }
                 }
             }
 
-            // ── Message field ─────────────────────────────────────────────
             OutlinedTextField(
                 value         = message,
                 onValueChange = { if (it.length <= maxChars) { message = it; msgError = null } },
                 label         = { Text(stringResource(R.string.contact_field_message)) },
                 isError       = msgError != null,
                 supportingText = {
-                    Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(msgError ?: "")
-                        Text(
-                            text  = "${message.length} / $maxChars",
-                            color = if (message.length >= maxChars)
-                                MaterialTheme.colorScheme.error
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text(text = "${message.length} / $maxChars",
+                             color = if (message.length >= maxChars)
+                                 MaterialTheme.colorScheme.error
+                             else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 minLines        = 6,
                 maxLines        = 12,
                 modifier        = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences
-                )
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
-            // ── Send button ───────────────────────────────────────────────
             Button(
                 onClick  = { focusManager.clearFocus(); sendMessage() },
                 enabled  = !isSending,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                if (isSending) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(20.dp),
-                        color       = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text  = stringResource(R.string.contact_send_button),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+                if (isSending)
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                else
+                    Text(text = stringResource(R.string.contact_send_button),
+                         style = MaterialTheme.typography.labelLarge)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -426,7 +412,7 @@ fun ContactUsScreen(
     }
 }
 
-// ── ContactUsViewModel — minimal holder so Hilt can inject the use case ───────
+// ── ContactUsViewModel ────────────────────────────────────────────────────────
 
 @dagger.hilt.android.lifecycle.HiltViewModel
 class ContactUsViewModel @Inject constructor(
@@ -436,7 +422,10 @@ class ContactUsViewModel @Inject constructor(
 // ── Delete Account ────────────────────────────────────────────────────────────
 
 @Composable
-fun DeleteAccountScreen(onBack: () -> Unit) {
+fun DeleteAccountScreen(
+    onBack: () -> Unit,         // used in LaunchedEffect to pop back after URL opens
+    onHomeClick: () -> Unit
+) {
     val context = LocalContext.current
     val url     = stringResource(R.string.delete_account_url)
 
@@ -446,17 +435,20 @@ fun DeleteAccountScreen(onBack: () -> Unit) {
     }
 
     Scaffold(
-        topBar = { VexTopAppBar(title = stringResource(R.string.delete_account_title), onBack = onBack) }
+        topBar = {
+            VexTopAppBar(
+                title       = stringResource(R.string.delete_account_title),
+                onLogoClick = onHomeClick
+            )
+        }
     ) { padding ->
         Box(
             modifier         = Modifier.fillMaxSize().padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text  = stringResource(R.string.delete_account_opening_browser),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text  = stringResource(R.string.delete_account_opening_browser),
+                 style = MaterialTheme.typography.bodyLarge,
+                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,6 +35,7 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 fun QuizCategoryScreen(
     onCategoryClick: (categoryId: Int, categoryName: String) -> Unit,
     onHistoryClick: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: QuizCategoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -40,11 +43,12 @@ fun QuizCategoryScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title = stringResource(R.string.quiz_categories_title),
-                actions = {
+                title       = stringResource(R.string.quiz_categories_title),
+                onLogoClick = onHomeClick,
+                actions     = {
                     IconButton(onClick = onHistoryClick) {
                         Icon(
-                            imageVector = Icons.Default.History,
+                            imageVector        = Icons.Default.History,
                             contentDescription = stringResource(R.string.cd_history)
                         )
                     }
@@ -66,17 +70,20 @@ fun QuizCategoryScreen(
                 )
 
                 uiState.categories.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = stringResource(R.string.quiz_categories_empty),
+                        text      = stringResource(R.string.quiz_categories_empty),
                         textAlign = TextAlign.Center
                     )
                 }
 
                 else -> CategoryList(
-                    categories = uiState.categories,
+                    heading         = stringResource(R.string.quiz_categories_title),
+                    categories      = uiState.categories,
+                    expandedIds     = uiState.expandedIds,
+                    onToggle        = viewModel::toggleCategory,
                     onCategoryClick = onCategoryClick
                 )
             }
@@ -86,44 +93,60 @@ fun QuizCategoryScreen(
 
 @Composable
 private fun CategoryList(
+    heading: String,
     categories: List<QuizCategory>,
+    expandedIds: Set<Int>,
+    onToggle: (categoryId: Int) -> Unit,
     onCategoryClick: (categoryId: Int, categoryName: String) -> Unit
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding      = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Show root categories; if they have subcategories, show subcategories beneath them
+        // ── Screen heading ────────────────────────────────────────────────
+        item(key = "heading") {
+            Text(
+                text       = heading,
+                style      = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.onSurface,
+                modifier   = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
         categories.forEach { category ->
+
             if (category.subcategories.isEmpty()) {
                 item(key = category.categoryId) {
                     QuizCategoryCard(
-                        category = category,
-                        onClick = {
-                            onCategoryClick(category.categoryId, category.categoryName)
-                        }
+                        category   = category,
+                        onClick    = { onCategoryClick(category.categoryId, category.categoryName) },
+                        isExpanded = null
                     )
                 }
             } else {
-                // Parent category as a section header card
+                val isExpanded = category.categoryId in expandedIds
+
                 item(key = category.categoryId) {
                     QuizCategoryCard(
-                        category = category,
-                        onClick = {
-                            onCategoryClick(category.categoryId, category.categoryName)
-                        }
+                        category   = category,
+                        onClick    = { onToggle(category.categoryId) },
+                        isExpanded = isExpanded
                     )
                 }
-                // Subcategories indented beneath parent
-                items(
-                    items = category.subcategories,
-                    key = { it.categoryId }
-                ) { sub ->
-                    QuizCategoryCard(
-                        category = sub,
-                        onClick = { onCategoryClick(sub.categoryId, sub.categoryName) },
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
+
+                if (isExpanded) {
+                    items(
+                        items = category.subcategories,
+                        key   = { it.categoryId }
+                    ) { sub ->
+                        QuizCategoryCard(
+                            category   = sub,
+                            onClick    = { onCategoryClick(sub.categoryId, sub.categoryName) },
+                            isExpanded = null,
+                            modifier   = Modifier.padding(start = 8.dp)
+                        )
+                    }
                 }
             }
         }

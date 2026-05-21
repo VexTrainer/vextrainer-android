@@ -27,7 +27,7 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 @Composable
 fun QuizListScreen(
     onQuizClick: (quizId: Int) -> Unit,
-    onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: QuizListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -35,10 +35,8 @@ fun QuizListScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title = uiState.categoryName.ifBlank {
-                    stringResource(R.string.nav_quizzes)
-                },
-                onBack = onBack
+                title       = uiState.categoryName.ifBlank { stringResource(R.string.nav_quizzes) },
+                onLogoClick = onHomeClick
             )
         }
     ) { paddingValues ->
@@ -56,27 +54,18 @@ fun QuizListScreen(
                 )
 
                 uiState.quizzes.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.quiz_list_empty),
-                        textAlign = TextAlign.Center
-                    )
+                    Text(text = stringResource(R.string.quiz_list_empty), textAlign = TextAlign.Center)
                 }
 
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(
-                        items = uiState.quizzes,
-                        key = { it.quizId }
-                    ) { quiz ->
-                        QuizCard(
-                            quiz = quiz,
-                            onClick = { onQuizClick(quiz.quizId) }
-                        )
+                    items(items = uiState.quizzes, key = { it.quizId }) { quiz ->
+                        QuizCard(quiz = quiz, onClick = { onQuizClick(quiz.quizId) })
                     }
                 }
             }

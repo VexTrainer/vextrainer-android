@@ -41,10 +41,11 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 @Composable
 fun QuizDetailScreen(
     onStartQuiz: (attemptId: Int) -> Unit,
-    onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: QuizDetailViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState           = viewModel.uiState.collectAsStateWithLifecycle()
+    val state             by uiState
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -55,10 +56,9 @@ fun QuizDetailScreen(
         }
     }
 
-    // Show error in snackbar when quiz is already loaded (start failure)
-    val errorMessage = uiState.error?.asString()
-    LaunchedEffect(uiState.error) {
-        if (uiState.quiz != null && uiState.error != null && errorMessage != null) {
+    val errorMessage = state.error?.asString()
+    LaunchedEffect(state.error) {
+        if (state.quiz != null && state.error != null && errorMessage != null) {
             snackbarHostState.showSnackbar(errorMessage)
         }
     }
@@ -66,8 +66,8 @@ fun QuizDetailScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title = uiState.quiz?.quizTitle ?: stringResource(R.string.nav_quizzes),
-                onBack = onBack
+                title       = state.quiz?.quizTitle ?: stringResource(R.string.nav_quizzes),
+                onLogoClick = onHomeClick
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -78,17 +78,16 @@ fun QuizDetailScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading -> LoadingOverlay()
+                state.isLoading -> LoadingOverlay()
 
-                // Show error only when there's no quiz loaded yet
-                uiState.error != null && uiState.quiz == null -> ErrorCard(
-                    message = uiState.error!!.asString(),
+                state.error != null && state.quiz == null -> ErrorCard(
+                    message = state.error!!.asString(),
                     onRetry = viewModel::loadQuizDetail
                 )
 
-                uiState.quiz != null -> QuizDetailContent(
-                    quiz = uiState.quiz!!,
-                    isStarting = uiState.isStarting,
+                state.quiz != null -> QuizDetailContent(
+                    quiz        = state.quiz!!,
+                    isStarting  = state.isStarting,
                     onStartQuiz = viewModel::startQuiz
                 )
             }
@@ -109,104 +108,66 @@ private fun QuizDetailContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // ── Quiz info card ────────────────────────────────────────────────
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
+            colors   = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-
                 Text(
-                    text = quiz.quizTitle,
+                    text  = quiz.quizTitle,
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Spacer(Modifier.height(4.dp))
-
                 Text(
-                    text = stringResource(R.string.quiz_detail_category, quiz.categoryName),
+                    text  = stringResource(R.string.quiz_detail_category, quiz.categoryName),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 quiz.quizDescription?.let { desc ->
                     Spacer(Modifier.height(12.dp))
-                    Text(
-                        text = desc,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Text(text = desc, style = MaterialTheme.typography.bodyLarge,
+                         color = MaterialTheme.colorScheme.onSurface)
                 }
-
                 Spacer(Modifier.height(12.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-
-                // ── Stats row ─────────────────────────────────────────────
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(
-                        label = stringResource(
-                            R.string.quiz_questions_count,
-                            quiz.totalQuestions
-                        ),
-                        sublabel = null
-                    )
+                    StatItem(label = stringResource(R.string.quiz_questions_count, quiz.totalQuestions), sublabel = null)
                     quiz.passingScore?.let { score ->
-                        StatItem(
-                            label = stringResource(
-                                R.string.quiz_passing_score,
-                                "%.0f".format(score)
-                            ),
-                            sublabel = null
-                        )
+                        StatItem(label = stringResource(R.string.quiz_passing_score, "%.0f".format(score)), sublabel = null)
                     }
                 }
             }
         }
 
-        // ── Your stats card ───────────────────────────────────────────────
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+            colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(R.string.quiz_detail_your_stats),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Text(text = stringResource(R.string.quiz_detail_your_stats),
+                     style = MaterialTheme.typography.titleLarge,
+                     color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(8.dp))
-
                 if (quiz.userAttempts == 0) {
-                    Text(
-                        text = stringResource(R.string.quiz_detail_not_attempted),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(text = stringResource(R.string.quiz_detail_not_attempted),
+                         style = MaterialTheme.typography.bodyMedium,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
-                    Text(
-                        text = stringResource(R.string.quiz_attempts_count, quiz.userAttempts),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Text(text = stringResource(R.string.quiz_attempts_count, quiz.userAttempts),
+                         style = MaterialTheme.typography.bodyMedium,
+                         color = MaterialTheme.colorScheme.onSurface)
                     quiz.userBestScore?.let { best ->
                         Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(
-                                R.string.quiz_best_score,
-                                "%.0f".format(best)
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Text(text = stringResource(R.string.quiz_best_score, "%.0f".format(best)),
+                             style = MaterialTheme.typography.bodyMedium,
+                             color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -214,26 +175,17 @@ private fun QuizDetailContent(
 
         Spacer(Modifier.height(8.dp))
 
-        // ── Start button ──────────────────────────────────────────────────
         Button(
-            onClick = onStartQuiz,
-            enabled = !isStarting,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
+            onClick  = onStartQuiz,
+            enabled  = !isStarting,
+            modifier = Modifier.fillMaxWidth().height(54.dp)
         ) {
-            if (isStarting) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.quiz_start_button),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            if (isStarting)
+                CircularProgressIndicator(modifier = Modifier.size(22.dp),
+                    color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+            else
+                Text(text = stringResource(R.string.quiz_start_button),
+                     style = MaterialTheme.typography.titleLarge)
         }
     }
 }
@@ -241,17 +193,11 @@ private fun QuizDetailContent(
 @Composable
 private fun StatItem(label: String, sublabel: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
+        Text(text = label, style = MaterialTheme.typography.titleLarge,
+             color = MaterialTheme.colorScheme.primary)
         sublabel?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = it, style = MaterialTheme.typography.bodySmall,
+                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

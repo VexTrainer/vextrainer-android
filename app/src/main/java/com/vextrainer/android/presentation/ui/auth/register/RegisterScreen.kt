@@ -40,15 +40,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.vextrainer.android.R
 
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
-    val uiState      by viewModel.uiState.collectAsStateWithLifecycle()
-    val focusManager  = LocalFocusManager.current
-    var passwordVisible by remember { mutableStateOf(false) }
+    val uiState         by viewModel.uiState.collectAsStateWithLifecycle()
+    val focusManager     = LocalFocusManager.current
+    var passwordVisible  by remember { mutableStateOf(false) }
 
     Scaffold { padding ->
         Column(
@@ -94,6 +97,15 @@ fun RegisterScreen(
                 }
 
             } else {
+                // ── Logo ──────────────────────────────────────────────────
+                Image(
+                    painter            = painterResource(R.drawable.logo_vextrainer),
+                    contentDescription = "VexTrainer",
+                    modifier           = Modifier.size(88.dp)
+                )
+
+                Spacer(Modifier.height(16.dp))
+
                 // ── Registration form ─────────────────────────────────────
                 Text(
                     text  = "Create Account",
@@ -141,14 +153,14 @@ fun RegisterScreen(
                 Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value           = uiState.password,
-                    onValueChange   = viewModel::onPasswordChange,
-                    label           = { Text("Password") },
-                    singleLine      = true,
-                    modifier        = Modifier.fillMaxWidth(),
+                    value                = uiState.password,
+                    onValueChange        = viewModel::onPasswordChange,
+                    label                = { Text("Password") },
+                    singleLine           = true,
+                    modifier             = Modifier.fillMaxWidth(),
                     visualTransformation = if (passwordVisible) VisualTransformation.None
                                            else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
+                    keyboardOptions      = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction    = ImeAction.Next
                     ),
@@ -169,13 +181,13 @@ fun RegisterScreen(
                 Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value           = uiState.confirmPassword,
-                    onValueChange   = viewModel::onConfirmPasswordChange,
-                    label           = { Text("Confirm Password") },
-                    singleLine      = true,
-                    modifier        = Modifier.fillMaxWidth(),
+                    value                = uiState.confirmPassword,
+                    onValueChange        = viewModel::onConfirmPasswordChange,
+                    label                = { Text("Confirm Password") },
+                    singleLine           = true,
+                    modifier             = Modifier.fillMaxWidth(),
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
+                    keyboardOptions      = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction    = ImeAction.Done
                     ),

@@ -1,5 +1,6 @@
 package com.vextrainer.android.presentation.ui.auth.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +50,7 @@ import androidx.credentials.CreatePasswordRequest
 import androidx.credentials.CredentialManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vextrainer.android.R
 
 @Composable
 fun LoginScreen(
@@ -54,11 +58,11 @@ fun LoginScreen(
     onNavigateToRegister: (email: String) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val uiState           by viewModel.uiState.collectAsStateWithLifecycle()
-    val context            = LocalContext.current
-    val focusManager       = LocalFocusManager.current
-    var passwordVisible by remember { mutableStateOf(false) }
-    val credentialManager  = remember { CredentialManager.create(context) }
+    val uiState          by viewModel.uiState.collectAsStateWithLifecycle()
+    val context           = LocalContext.current
+    val focusManager      = LocalFocusManager.current
+    var passwordVisible   by remember { mutableStateOf(false) }
+    val credentialManager = remember { CredentialManager.create(context) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -89,6 +93,19 @@ fun LoginScreen(
         ) {
             Spacer(Modifier.height(48.dp))
 
+            // ── Logo ──────────────────────────────────────────────────────
+            // painterResource() cannot load adaptive icons from mipmap (they are
+            // XML wrappers, not rasters). ic_launcher_foreground is a plain vector
+            // drawable and works correctly. We wrap it in a filled circle to
+            // reproduce the full launcher-icon appearance.
+            Image(
+                painter            = painterResource(R.drawable.logo_vextrainer),
+                contentDescription = "VexTrainer",
+                modifier           = Modifier.size(88.dp)
+            )
+
+            Spacer(Modifier.height(16.dp))
+
             Text(
                 text  = "VexTrainer",
                 style = MaterialTheme.typography.headlineLarge,
@@ -109,7 +126,7 @@ fun LoginScreen(
 
                 // ── INITIAL: email + 3 buttons ────────────────────────────
                 LoginStep.INITIAL -> {
-                    OutlinedButton_EmailField(
+                    EmailField(
                         value         = uiState.email,
                         onValueChange = viewModel::onEmailChange,
                         isError       = uiState.error != null,
@@ -124,7 +141,6 @@ fun LoginScreen(
                             style    = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        // Unconfirmed account — offer resend link
                         if (uiState.isUnconfirmed) {
                             TextButton(
                                 onClick  = viewModel::resendConfirmation,
@@ -137,9 +153,9 @@ fun LoginScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text     = "  Resend confirmation email",
-                                    style    = MaterialTheme.typography.labelLarge,
-                                    color    = MaterialTheme.colorScheme.primary
+                                    text  = "  Resend confirmation email",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -201,15 +217,15 @@ fun LoginScreen(
 
                     Spacer(Modifier.height(8.dp))
 
-                    androidx.compose.material3.OutlinedTextField(
-                        value           = uiState.password,
-                        onValueChange   = viewModel::onPasswordChange,
-                        label           = { Text("Password") },
-                        singleLine      = true,
-                        modifier        = Modifier.fillMaxWidth(),
+                    OutlinedTextField(
+                        value                = uiState.password,
+                        onValueChange        = viewModel::onPasswordChange,
+                        label                = { Text("Password") },
+                        singleLine           = true,
+                        modifier             = Modifier.fillMaxWidth(),
                         visualTransformation = if (passwordVisible) VisualTransformation.None
                                                else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(
+                        keyboardOptions      = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
                             imeAction    = ImeAction.Done
                         ),
@@ -255,7 +271,7 @@ fun LoginScreen(
                     }
                 }
 
-                // ── RESET_SENT / CONFIRM_SENT ─────────────────────────────
+                // ── RESET_SENT ────────────────────────────────────────────
                 LoginStep.RESET_SENT -> {
                     Icon(
                         imageVector        = Icons.Default.CheckCircle,
@@ -286,16 +302,18 @@ fun LoginScreen(
     }
 }
 
-// ── Extracted text field to reduce nesting ────────────────────────────────────
+// ── Shared logo composable ────────────────────────────────────────────────────
+
+// ── Private helpers ───────────────────────────────────────────────────────────
 
 @Composable
-private fun OutlinedButton_EmailField(
+private fun EmailField(
     value: String,
     onValueChange: (String) -> Unit,
     isError: Boolean,
     onDone: () -> Unit
 ) {
-    androidx.compose.material3.OutlinedTextField(
+    OutlinedTextField(
         value           = value,
         onValueChange   = onValueChange,
         label           = { Text("Email") },

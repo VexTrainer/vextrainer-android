@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,13 +29,17 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 @Composable
 fun ModulesScreen(
     onModuleClick: (moduleId: Int, moduleName: String) -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: ModulesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            VexTopAppBar(title = stringResource(R.string.modules_title))
+            VexTopAppBar(
+                title       = stringResource(R.string.modules_title),
+                onLogoClick = onHomeClick
+            )
         }
     ) { paddingValues ->
         Box(
@@ -51,24 +56,35 @@ fun ModulesScreen(
                 )
 
                 uiState.modules.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = stringResource(R.string.modules_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text      = stringResource(R.string.modules_empty),
+                        style     = MaterialTheme.typography.bodyLarge,
+                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                 }
 
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // ── Screen heading ────────────────────────────────────
+                    item(key = "heading") {
+                        Text(
+                            text       = stringResource(R.string.modules_title),
+                            style      = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = MaterialTheme.colorScheme.onSurface,
+                            modifier   = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+
                     items(uiState.modules, key = { it.moduleId }) { module ->
                         ModuleCard(
-                            module = module,
+                            module  = module,
                             onClick = { onModuleClick(module.moduleId, module.moduleName) }
                         )
                     }

@@ -39,21 +39,22 @@ fun NavGraph(
     navController: NavHostController = rememberNavController(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
-    // isLoggedIn is now expiry-aware in SecurePreferences, so an outdated token
-    // on disk will correctly produce `false` here and send the user to Login.
     val startDestination = if (mainViewModel.isLoggedIn) Screen.QuizCategories.route
                            else Screen.Login.route
 
-    // ── Session-expired observer ───────────────────────────────────────────────
-    // AuthInterceptor calls SessionManager.notifySessionExpired() on a background
-    // thread whenever a 401 is received and the refresh token is also invalid.
-    // We collect that signal here and navigate to Login, clearing the entire
-    // back stack so the user cannot press Back to return to authenticated screens.
     LaunchedEffect(navController) {
         mainViewModel.sessionExpired.collect {
             navController.navigate(Screen.Login.route) {
                 popUpTo(0) { inclusive = true }
             }
+        }
+    }
+
+    // Passed to every screen so the logo tap in VexTopAppBar navigates home.
+    val goHome: () -> Unit = {
+        navController.navigate(Screen.QuizCategories.route) {
+            popUpTo(Screen.QuizCategories.route) { inclusive = false }
+            launchSingleTop = true
         }
     }
 
@@ -103,13 +104,14 @@ fun NavGraph(
                 )
             }
 
-            // ── Quiz — Categories ─────────────────────────────────────────
+            // ── Quiz — Categories (home) ───────────────────────────────────
             composable(Screen.QuizCategories.route) {
                 QuizCategoryScreen(
                     onCategoryClick = { id, name ->
                         navController.navigate(Screen.QuizList.createRoute(id, name))
                     },
-                    onHistoryClick = { navController.navigate(Screen.QuizHistory.route) }
+                    onHistoryClick  = { navController.navigate(Screen.QuizHistory.route) },
+                    onHomeClick     = {}   // already home — no-op
                 )
             }
 
@@ -127,7 +129,7 @@ fun NavGraph(
                     onQuizClick = { quizId ->
                         navController.navigate(Screen.QuizDetail.createRoute(quizId))
                     },
-                    onBack = { navController.popBackStack() }
+                    onHomeClick = goHome
                 )
             }
 
@@ -144,7 +146,7 @@ fun NavGraph(
                             popUpTo(Screen.QuizDetail.route) { inclusive = true }
                         }
                     },
-                    onBack = { navController.popBackStack() }
+                    onHomeClick = goHome
                 )
             }
 
@@ -161,7 +163,8 @@ fun NavGraph(
                             popUpTo(Screen.QuizSession.route) { inclusive = true }
                         }
                     },
-                    onBack = { navController.popBackStack() }
+                    onBack      = { navController.popBackStack() },   // exit-dialog confirm
+                    onHomeClick = goHome
                 )
             }
 
@@ -178,11 +181,12 @@ fun NavGraph(
                             popUpTo(Screen.QuizCategories.route) { inclusive = false }
                         }
                     },
-                    onDone = {
+                    onDone      = {
                         navController.navigate(Screen.QuizCategories.route) {
                             popUpTo(Screen.QuizCategories.route) { inclusive = false }
                         }
-                    }
+                    },
+                    onHomeClick = goHome
                 )
             }
 
@@ -192,16 +196,17 @@ fun NavGraph(
                     onAttemptClick = { attemptId ->
                         navController.navigate(Screen.QuizResult.createRoute(attemptId))
                     },
-                    onBack = { navController.popBackStack() }
+                    onHomeClick = goHome
                 )
             }
 
-            // ── Lessons — Modules ─────────────────────────────────────────
+            // ── Lessons — Modules (home) ──────────────────────────────────
             composable(Screen.Modules.route) {
                 ModulesScreen(
                     onModuleClick = { moduleId, moduleName ->
                         navController.navigate(Screen.LessonList.createRoute(moduleId, moduleName))
-                    }
+                    },
+                    onHomeClick = goHome
                 )
             }
 
@@ -219,7 +224,7 @@ fun NavGraph(
                     onLessonClick = { lessonId, lessonTitle ->
                         navController.navigate(Screen.TopicList.createRoute(lessonId, lessonTitle))
                     },
-                    onBack = { navController.popBackStack() }
+                    onHomeClick = goHome
                 )
             }
 
@@ -237,7 +242,7 @@ fun NavGraph(
                     onTopicClick = { topicId ->
                         navController.navigate(Screen.TopicViewer.createRoute(topicId))
                     },
-                    onBack = { navController.popBackStack() }
+                    onHomeClick = goHome
                 )
             }
 
@@ -249,13 +254,14 @@ fun NavGraph(
                 )
             ) {
                 TopicViewerScreen(
-                    onPrevious = { prevTopicId ->
+                    onPrevious  = { prevTopicId ->
                         navController.navigate(Screen.TopicViewer.createRoute(prevTopicId))
                     },
-                    onNext = { nextTopicId ->
+                    onNext      = { nextTopicId ->
                         navController.navigate(Screen.TopicViewer.createRoute(nextTopicId))
                     },
-                    onBack = { navController.popBackStack() }
+                    onBack      = { navController.popBackStack() },
+                    onHomeClick = goHome
                 )
             }
 
@@ -271,25 +277,41 @@ fun NavGraph(
                     onContactUs     = { navController.navigate(Screen.ContactUs.route) },
                     onPrivacy       = { navController.navigate(Screen.Privacy.route) },
                     onDonate        = { navController.navigate(Screen.Donate.route) },
-                    onDeleteAccount = { navController.navigate(Screen.DeleteAccount.route) }
+                    onDeleteAccount = { navController.navigate(Screen.DeleteAccount.route) },
+                    onHomeClick     = goHome
                 )
             }
 
             // ── Info screens ──────────────────────────────────────────────
             composable(Screen.About.route) {
-                AboutScreen(onBack = { navController.popBackStack() })
+                AboutScreen(
+                    onBack      = { navController.popBackStack() },
+                    onHomeClick = goHome
+                )
             }
             composable(Screen.ContactUs.route) {
-                ContactUsScreen(onBack = { navController.popBackStack() })
+                ContactUsScreen(
+                    onBack      = { navController.popBackStack() },
+                    onHomeClick = goHome
+                )
             }
             composable(Screen.Privacy.route) {
-                PrivacyScreen(onBack = { navController.popBackStack() })
+                PrivacyScreen(
+                    onBack      = { navController.popBackStack() },
+                    onHomeClick = goHome
+                )
             }
             composable(Screen.Donate.route) {
-                DonateScreen(onBack = { navController.popBackStack() })
+                DonateScreen(
+                    onBack      = { navController.popBackStack() },
+                    onHomeClick = goHome
+                )
             }
             composable(Screen.DeleteAccount.route) {
-                DeleteAccountScreen(onBack = { navController.popBackStack() })
+                DeleteAccountScreen(
+                    onBack      = { navController.popBackStack() },
+                    onHomeClick = goHome
+                )
             }
         }
     }

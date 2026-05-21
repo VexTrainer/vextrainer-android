@@ -18,7 +18,9 @@ import javax.inject.Inject
 data class QuizCategoryUiState(
     val isLoading: Boolean = false,
     val categories: List<QuizCategory> = emptyList(),
-    val error: UiText? = null
+    val error: UiText? = null,
+    /** IDs of parent categories whose subcategory list is currently visible. */
+    val expandedIds: Set<Int> = emptySet()
 )
 
 @HiltViewModel
@@ -38,7 +40,13 @@ class QuizCategoryViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             getQuizCategoriesUseCase()
                 .onSuccess { categories ->
-                    _uiState.update { it.copy(isLoading = false, categories = categories) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            categories = categories,
+                            expandedIds = emptySet()   // collapse all on fresh load
+                        )
+                    }
                 }
                 .onFailure { e ->
                     _uiState.update {
@@ -48,6 +56,17 @@ class QuizCategoryViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    /** Expands a collapsed section or collapses an expanded one. */
+    fun toggleCategory(categoryId: Int) {
+        _uiState.update { state ->
+            val expanded = state.expandedIds
+            state.copy(
+                expandedIds = if (categoryId in expanded) expanded - categoryId
+                              else expanded + categoryId
+            )
         }
     }
 }

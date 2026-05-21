@@ -28,7 +28,7 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 @Composable
 fun LessonListScreen(
     onLessonClick: (lessonId: Int, lessonTitle: String) -> Unit,
-    onBack: () -> Unit,
+    onHomeClick: () -> Unit,
     viewModel: LessonListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -36,8 +36,8 @@ fun LessonListScreen(
     Scaffold(
         topBar = {
             VexTopAppBar(
-                title = uiState.moduleName.ifBlank { stringResource(R.string.nav_lessons) },
-                onBack = onBack
+                title       = uiState.moduleName.ifBlank { stringResource(R.string.nav_lessons) },
+                onLogoClick = onHomeClick
             )
         }
     ) { paddingValues ->
@@ -55,24 +55,22 @@ fun LessonListScreen(
                 )
 
                 uiState.lessons.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.lesson_list_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+                    Text(text = stringResource(R.string.lesson_list_empty),
+                         style = MaterialTheme.typography.bodyLarge,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                         textAlign = TextAlign.Center)
                 }
 
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.lessons, key = { it.lessonId }) { lesson ->
                         LessonCard(
-                            lesson = lesson,
+                            lesson  = lesson,
                             onClick = { onLessonClick(lesson.lessonId, lesson.lessonTitle) }
                         )
                     }
