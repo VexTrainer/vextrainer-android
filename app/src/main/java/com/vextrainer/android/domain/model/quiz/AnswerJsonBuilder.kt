@@ -4,27 +4,24 @@ package com.vextrainer.android.domain.model.quiz
  * Builds the answerJson string passed to POST /Quiz/attempts/{id}/answer.
  *
  * Confirmed formats (from live API testing):
- *   SINGLE_ANSWER  → {"answerId":1}
- *   TRUE_OR_FALSE  → {"answerId":1}   (same — True and False are answer options)
- *   FILL_IN_BLANK  → {"answerId":1}   (answers presented as selectable options)
- *
- * Unconfirmed — TODO: test during Stage 4 before wiring QuizSessionScreen:
- *   MULTIPLE_ANSWER → format TBD (likely {"answerIds":[1,2,3]})
- *   MATCHING        → format TBD (matchSide L/R pairing needed)
+ *   SINGLE_ANSWER   → {"answer_id":1}
+ *   TRUE_OR_FALSE   → {"answer_id":1}
+ *   FILL_IN_BLANK   → {"text":"user typed answer"}
+ *   MULTIPLE_ANSWER → {"answer_ids":[1,2,3]}
+ *   MATCHING        → {"matches":[{"left":1,"right":2},...]}
  */
 object AnswerJsonBuilder {
 
     /** Single choice, True/False, Fill-in-blank — all use the same single answerId format. */
     fun singleAnswer(answerId: Int): String =
-        """{"answerId":$answerId}"""
+        """{"answer_id":$answerId}"""
 
-    /**
-     * Multiple choice — multiple answers.
-     * Format is assumed — verify against live API in Stage 4 before shipping.
-     */
+    fun fillInBlank(text: String): String =
+        """{"text":"${text.trim()}"}"""
+
     fun multipleAnswers(answerIds: List<Int>): String {
         val idsJson = answerIds.joinToString(",", "[", "]")
-        return """{"answerIds":$idsJson}"""
+        return """{"answer_ids":$idsJson}"""
     }
 
     /**
@@ -47,11 +44,13 @@ object AnswerJsonBuilder {
     fun build(
         questionType: QuestionType,
         selectedIds: List<Int>,
-        matchingPairs: List<Pair<Int, Int>> = emptyList()
+        matchingPairs: List<Pair<Int, Int>> = emptyList(),
+        fillInText: String = ""
     ): String = when {
         matchingPairs.isNotEmpty()                   -> matching(matchingPairs)
+        questionType == QuestionType.FILL_IN_BLANK   -> fillInBlank(fillInText)
         questionType == QuestionType.MULTIPLE_ANSWER -> multipleAnswers(selectedIds)
         selectedIds.isNotEmpty()                     -> singleAnswer(selectedIds.first())
-        else -> ""  // should not happen — guard against empty crash
+        else -> ""
     }
 }

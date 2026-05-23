@@ -76,9 +76,15 @@ class SubmitAnswerUseCase @Inject constructor(
         questionId: Int,
         questionType: QuestionType,
         selectedIds: List<Int>,
-        matchingPairs: List<Pair<Int, Int>> = emptyList()
+        matchingPairs: List<Pair<Int, Int>> = emptyList(),
+        fillInText: String = ""
     ): Result<AnswerResult> {
-        val answerJson = AnswerJsonBuilder.build(questionType, selectedIds, matchingPairs)
+        val answerJson = AnswerJsonBuilder.build(
+            questionType  = questionType,
+            selectedIds   = selectedIds,
+            matchingPairs = matchingPairs,
+            fillInText    = fillInText
+        )
         return repo.submitAnswer(attemptId, questionId, answerJson)
     }
 }

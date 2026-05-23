@@ -32,7 +32,6 @@ import com.vextrainer.android.R
 import com.vextrainer.android.domain.model.quiz.QuizResults
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
-import com.vextrainer.android.presentation.components.PassFailChip
 import com.vextrainer.android.presentation.components.QuestionResultRow
 import com.vextrainer.android.presentation.components.ScoreBadge
 import com.vextrainer.android.presentation.components.VexTopAppBar
@@ -86,8 +85,8 @@ private fun ResultContent(
     val summary = results.summary
 
     LazyColumn(
-        modifier       = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        modifier            = Modifier.fillMaxSize(),
+        contentPadding      = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
@@ -95,41 +94,59 @@ private fun ResultContent(
                 modifier            = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = summary.quizTitle, style = MaterialTheme.typography.headlineMedium,
-                     fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                     color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text       = summary.quizTitle,
+                    style      = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign  = TextAlign.Center,
+                    color      = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.height(20.dp))
                 ScoreBadge(score = summary.score ?: 0.0, passingScore = summary.passingScore)
-                Spacer(Modifier.height(12.dp))
-                PassFailChip(passed = summary.passed)
-                Spacer(Modifier.height(8.dp))
-                Text(text = stringResource(R.string.quiz_correct_answers,
-                    summary.correctAnswers, summary.totalQuestions),
-                     style = MaterialTheme.typography.bodyLarge,
-                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text  = stringResource(
+                        R.string.quiz_correct_answers,
+                        summary.correctAnswers,
+                        summary.totalQuestions
+                    ),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(Modifier.height(20.dp))
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f).height(48.dp)) {
+                    OutlinedButton(
+                        onClick  = onDone,
+                        modifier = Modifier.weight(1f).height(48.dp)
+                    ) {
                         Text(stringResource(R.string.quiz_done_button))
                     }
-                    Button(onClick = onRetakeQuiz, modifier = Modifier.weight(1f).height(48.dp)) {
+                    Button(
+                        onClick  = onRetakeQuiz,
+                        modifier = Modifier.weight(1f).height(48.dp)
+                    ) {
                         Text(stringResource(R.string.quiz_retake_button))
                     }
                 }
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
-                Text(text = stringResource(R.string.quiz_review_title),
-                     style = MaterialTheme.typography.titleLarge,
-                     fontWeight = FontWeight.Bold,
-                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
+                Text(
+                    text      = stringResource(R.string.quiz_review_title),
+                    style     = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier  = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                )
             }
         }
 
-        itemsIndexed(items = results.questions, key = { _, q -> q.questionId }) { index, question ->
+        itemsIndexed(
+            items = results.questions,
+            key   = { _, q -> q.questionId }
+        ) { index, question ->
             QuestionResultRow(result = question, index = index)
         }
 

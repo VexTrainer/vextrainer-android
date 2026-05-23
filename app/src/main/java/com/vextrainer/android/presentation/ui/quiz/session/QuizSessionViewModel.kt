@@ -47,6 +47,9 @@ data class QuizSessionUiState(
     // Single / multi-answer selection
     val selectedAnswerIds: List<Int> = emptyList(),
 
+    // Fill-in-blank typed answer
+    val fillInBlankText: String = "",
+
     // Matching question state
     // Each pair is (leftAnswerId, rightAnswerId)
     val matchingPairs: List<Pair<Int, Int>> = emptyList(),
@@ -73,7 +76,9 @@ data class QuizSessionUiState(
     val progressDisplay: Int
         get() = currentIndex + 1
 
-    /** True when the current question is a matching type. */
+    val isFillInBlank: Boolean
+        get() = currentQuestion?.questionType == QuestionType.FILL_IN_BLANK
+
     val isMatchingQuestion: Boolean
         get() = currentQuestion?.answers?.any { it.matchSide != null } == true
 
@@ -210,6 +215,18 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
+    // ── Answer input — fill-in-blank ──────────────────────────────────────────
+
+    fun onFillInBlankTextChanged(text: String) {
+        _uiState.update {
+            it.copy(
+                fillInBlankText = text,
+                phase           = if (text.isNotBlank()) SessionPhase.ANSWER_SELECTED
+                                  else SessionPhase.QUESTION_DISPLAYED
+            )
+        }
+    }
+
     // ── Answer selection — matching ───────────────────────────────────────────
 
     /**
@@ -247,9 +264,8 @@ class QuizSessionViewModel @Inject constructor(
                 // Select this L item (replaces any previous L selection)
                 _uiState.update { it.copy(selectedLeftId = answerId) }
             }
-        } else { // matchSide == "R"
-            val leftId = state.selectedLeftId
-            if (leftId == null) return // Must select L first
+        } else {
+            val leftId = state.selectedLeftId ?: return
 
             // Check if this R is already paired — tap to unpair
             val existingPair = pairs.find { it.second == answerId }
@@ -271,8 +287,7 @@ class QuizSessionViewModel @Inject constructor(
             // Add new pair
             pairs.add(Pair(leftId, answerId))
 
-            val question = state.currentQuestion
-            val leftCount = question?.answers?.count { it.matchSide == "L" } ?: 0
+            val leftCount = state.currentQuestion?.answers?.count { it.matchSide == "L" } ?: 0
             val allPaired = pairs.size >= leftCount
 
             _uiState.update {
@@ -296,24 +311,22 @@ class QuizSessionViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(phase = SessionPhase.SUBMITTING, error = null) }
 
-            val result = if (state.isMatchingQuestion) {
-                // Build R-side IDs in the order they were paired with L items
-                // Sort pairs by L-item order in the question's answer list
-                val lOrder = question.answers
-                    .filter { it.matchSide == "L" }
-                    .map { it.answerId }
-                val sortedRIds = lOrder.mapNotNull { leftId ->
-                    state.matchingPairs.find { it.first == leftId }?.second
-                }
-                submitAnswerUseCase(
+            val result = when {
+                state.isMatchingQuestion -> submitAnswerUseCase(
                     attemptId    = attemptId,
                     questionId   = question.questionId,
                     questionType = question.questionType,
                     selectedIds  = emptyList(),        // not used for matching -- sortedRIds,
                     matchingPairs = state.matchingPairs
                 )
-            } else {
-                submitAnswerUseCase(
+                state.isFillInBlank -> submitAnswerUseCase(
+                    attemptId    = attemptId,
+                    questionId   = question.questionId,
+                    questionType = question.questionType,
+                    selectedIds  = emptyList(),
+                    fillInText   = state.fillInBlankText
+                )
+                else -> submitAnswerUseCase(
                     attemptId    = attemptId,
                     questionId   = question.questionId,
                     questionType = question.questionType,
@@ -355,6 +368,7 @@ class QuizSessionViewModel @Inject constructor(
                     phase             = SessionPhase.QUESTION_DISPLAYED,
                     currentIndex      = it.currentIndex + 1,
                     selectedAnswerIds = emptyList(),
+                    fillInBlankText   = "",
                     matchingPairs     = emptyList(),
                     selectedLeftId    = null,
                     answerResult      = null

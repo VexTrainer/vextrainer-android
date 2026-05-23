@@ -151,21 +151,13 @@ fun AnswerOptionButton(
             when (state) {
                 OptionState.CORRECT -> {
                     Spacer(Modifier.width(8.dp))
-                    Icon(
-                        imageVector        = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint               = Color(0xFF2E7D32),
-                        modifier           = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.CheckCircle, contentDescription = null,
+                         tint = Color(0xFF2E7D32), modifier = Modifier.size(20.dp))
                 }
                 OptionState.INCORRECT -> {
                     Spacer(Modifier.width(8.dp))
-                    Icon(
-                        imageVector        = Icons.Default.Cancel,
-                        contentDescription = null,
-                        tint               = Color(0xFFB71C1C),
-                        modifier           = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.Cancel, contentDescription = null,
+                         tint = Color(0xFFB71C1C), modifier = Modifier.size(20.dp))
                 }
                 else -> {}
             }
@@ -219,27 +211,31 @@ fun ScoreBadge(
         shape    = CircleShape,
         color    = bgColor,
         border   = BorderStroke(2.dp, color),
-        modifier = modifier.size(120.dp)
+        modifier = modifier.size(140.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Number and % on the same row, % baseline-aligned to bottom of number
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text       = "%.0f".format(score),
-                    fontSize   = 36.sp,
+                    fontSize   = 52.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = color
+                    color      = color,
+                    lineHeight = 52.sp
                 )
                 Text(
                     text  = "%",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = color
+                    fontSize   = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = color,
+                    modifier   = Modifier.padding(bottom = 6.dp)
                 )
             }
         }
     }
 }
 
-//  PassFailChip 
+// PassFailChip: kept for source compat but no longer used on result screen
 
 @Composable
 fun PassFailChip(
@@ -277,6 +273,10 @@ fun QuestionResultRow(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    // Use darker, explicit text color so explanation is legible on the
+    // light green / light orange card backgrounds.
+    val onCardColor = Color(0xFF1A1A1A)
+
     Card(
         modifier = modifier.fillMaxWidth(),
         colors   = CardDefaults.cardColors(
@@ -304,7 +304,7 @@ fun QuestionResultRow(
                 Text(
                     text     = "Q${index + 1}. ${result.questionText}",
                     style    = MaterialTheme.typography.bodyMedium,
-                    color    = Color(0xFF212121),
+                    color    = onCardColor,
                     modifier = Modifier.weight(1f),
                     maxLines = if (expanded) Int.MAX_VALUE else 2
                 )
@@ -334,14 +334,15 @@ fun QuestionResultRow(
                     Text(
                         text  = stringResource(R.string.quiz_explanation_label),
                         style = MaterialTheme.typography.labelLarge,
-                        color = Color(0xFF546E7A)
+                        fontWeight = FontWeight.SemiBold,
+                        color      = onCardColor
                     )
                     Spacer(Modifier.height(4.dp))
                     // inlineMarkdown keeps this inside the Card's click area safely.
                     Text(
                         text  = inlineMarkdown(exp),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = onCardColor
                     )
                 }
             }

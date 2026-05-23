@@ -26,7 +26,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,7 +64,7 @@ private val OPTION_LABELS = listOf("A", "B", "C", "D", "E", "F")
 @Composable
 fun QuizSessionScreen(
     onNavigateToResults: (attemptId: Int) -> Unit,
-    onBack: () -> Unit,         // used in exit-dialog confirm — do not remove
+    onBack: () -> Unit,
     onHomeClick: () -> Unit,
     viewModel: QuizSessionViewModel = hiltViewModel()
 ) {
@@ -105,7 +110,7 @@ fun QuizSessionScreen(
                     uiState.progressDisplay,
                     uiState.totalQuestions
                 ),
-                onLogoClick = onHomeClick   // logo tap goes home; back arrow not shown
+                onLogoClick = onHomeClick
             )
         }
     ) { paddingValues ->
@@ -136,12 +141,13 @@ fun QuizSessionScreen(
                 else -> {
                     uiState.currentQuestion?.let { question ->
                         QuizQuestionContent(
-                            question               = question,
-                            uiState                = uiState,
-                            onSelectAnswer         = viewModel::selectAnswer,
-                            onSelectMatchingAnswer = viewModel::selectMatchingAnswer,
-                            onSubmit               = viewModel::submitAnswer,
-                            onNext                 = viewModel::nextQuestion
+                            question                  = question,
+                            uiState                   = uiState,
+                            onSelectAnswer            = viewModel::selectAnswer,
+                            onSelectMatchingAnswer    = viewModel::selectMatchingAnswer,
+                            onFillInBlankTextChanged  = viewModel::onFillInBlankTextChanged,
+                            onSubmit                  = viewModel::submitAnswer,
+                            onNext                    = viewModel::nextQuestion
                         )
                     }
                 }
@@ -150,7 +156,7 @@ fun QuizSessionScreen(
     }
 }
 
-//  Question content
+// ── Question content ──────────────────────────────────────────────────────────
 
 @Composable
 private fun QuizQuestionContent(
@@ -158,6 +164,7 @@ private fun QuizQuestionContent(
     uiState: QuizSessionUiState,
     onSelectAnswer: (Int) -> Unit,
     onSelectMatchingAnswer: (answerId: Int, matchSide: String) -> Unit,
+    onFillInBlankTextChanged: (String) -> Unit,
     onSubmit: () -> Unit,
     onNext: () -> Unit
 ) {
@@ -172,7 +179,7 @@ private fun QuizQuestionContent(
     ) {
         QuizProgressBar(current = uiState.progressDisplay, total = uiState.totalQuestions)
 
-        //  Question type hint 
+        // ── Question type hint ────────────────────────────────────────────
         val hint = when {
             uiState.isMatchingQuestion ->
                 stringResource(R.string.quiz_match_instruction)
@@ -185,7 +192,7 @@ private fun QuizQuestionContent(
                  color = MaterialTheme.colorScheme.primary)
         }
 
-        //  Question text — rendered as Markdown 
+        // ── Question text — rendered as Markdown ──────────────────────────
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors   = CardDefaults.cardColors(
@@ -202,9 +209,15 @@ private fun QuizQuestionContent(
             )
         }
 
-        //  Answer options 
-        if (uiState.isMatchingQuestion) {
-            MatchingQuestionContent(
+        // ── Answer options ────────────────────────────────────────────────
+        when {
+            uiState.isFillInBlank -> FillInBlankInput(
+                text          = uiState.fillInBlankText,
+                onTextChanged = onFillInBlankTextChanged,
+                isRevealed    = isRevealed,
+                onSubmit      = onSubmit
+            )
+            uiState.isMatchingQuestion -> MatchingQuestionContent(
                 answers        = question.answers,
                 matchingPairs  = uiState.matchingPairs,
                 selectedLeftId = uiState.selectedLeftId,
@@ -212,10 +225,7 @@ private fun QuizQuestionContent(
                 correctRIds    = parseCorrectMatchIds(uiState.answerResult?.correctAnswerJson),
                 onPairSelected = onSelectMatchingAnswer
             )
-        } else {
-            // AnswerOptionButton renders answer text — update SessionComponents.kt
-            // to use MarkdownText internally for full markdown support in answer options.
-            question.answers.forEachIndexed { index, answer ->
+            else -> question.answers.forEachIndexed { index, answer ->
                 val optionState = resolveOptionState(
                     answer       = answer,
                     selectedIds  = uiState.selectedAnswerIds,
@@ -232,17 +242,20 @@ private fun QuizQuestionContent(
             }
         }
 
-        //  Feedback / explanation — rendered as Markdown 
+        // ── Feedback / explanation — rendered as Markdown ─────────────────
         uiState.answerResult?.let { result ->
             if (isRevealed) FeedbackCard(answerResult = result)
         }
 
-        //  Action buttons 
+        // ── Action buttons ────────────────────────────────────────────────
         if (!isRevealed) {
             Button(
                 onClick  = onSubmit,
-                enabled  = uiState.selectedAnswerIds.isNotEmpty() ||
-                           (uiState.isMatchingQuestion && uiState.matchingComplete),
+                enabled  = when {
+                    uiState.isFillInBlank      -> uiState.fillInBlankText.isNotBlank()
+                    uiState.isMatchingQuestion -> uiState.matchingComplete
+                    else                       -> uiState.selectedAnswerIds.isNotEmpty()
+                },
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Text(text = stringResource(R.string.quiz_submit_button),
@@ -260,7 +273,36 @@ private fun QuizQuestionContent(
     }
 }
 
-//  Matching question 
+
+// ── Fill-in-blank input ───────────────────────────────────────────────────────
+
+@Composable
+private fun FillInBlankInput(
+    text: String,
+    onTextChanged: (String) -> Unit,
+    isRevealed: Boolean,
+    onSubmit: () -> Unit
+) {
+    val focusManager = LocalFocusManager.current
+
+    OutlinedTextField(
+        value           = text,
+        onValueChange   = { if (!isRevealed) onTextChanged(it) },
+        label           = { Text("Your answer") },
+        singleLine      = true,
+        enabled         = !isRevealed,
+        modifier        = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                focusManager.clearFocus()
+                if (text.isNotBlank()) onSubmit()
+            }
+        )
+    )
+}
+
+// ── Matching question ─────────────────────────────────────────────────────────
 
 private val PAIR_COLORS = listOf(
     Pair(Color(0xFFE3F2FD), Color(0xFF1565C0)),
@@ -287,7 +329,7 @@ private fun MatchingQuestionContent(
         modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        //  Left column 
+        // ── Left column ───────────────────────────────────────────────────
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = "Component", style = MaterialTheme.typography.labelLarge,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -326,7 +368,7 @@ private fun MatchingQuestionContent(
             }
         }
 
-        //  Right column 
+        // ── Right column ──────────────────────────────────────────────────
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = "Purpose", style = MaterialTheme.typography.labelLarge,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -414,7 +456,7 @@ private fun MatchingItemButton(
     }
 }
 
-//  Feedback card
+// ── Feedback card ─────────────────────────────────────────────────────────────
 
 /**
  * Shows correct/incorrect result and explanation after an answer is submitted.
@@ -454,7 +496,7 @@ private fun FeedbackCard(
     }
 }
 
-//  Option state resolver 
+// ── Option state resolver ─────────────────────────────────────────────────────
 
 private fun resolveOptionState(
     answer: QuizAnswer,
@@ -465,49 +507,41 @@ private fun resolveOptionState(
     if (!isRevealed) {
         return if (answer.answerId in selectedIds) OptionState.SELECTED else OptionState.DEFAULT
     }
-    val wasSelected = answer.answerId in selectedIds
-    val correctId   = answerResult?.correctAnswerJson?.let { parseCorrectAnswerId(it) }
+    val wasSelected    = answer.answerId in selectedIds
+    val apiSaysCorrect = answerResult?.isCorrect == true
+    val json           = answerResult?.correctAnswerJson
+
+    // Parse correct IDs — works for all API formats via regex:
+    //   Single:         {"answer_id":4306}            -> [4306]
+    //   Multiple:       [{"answer_id":4300},...]       -> [4300, 4301, ...]
+    //   Fill-in-blank:  {"text":"fiasco"}              -> [] (no answer_id key)
+    val correctIds: List<Int> = parseCorrectMatchIds(json)
+
     return when {
-        correctId != null && answer.answerId == correctId && wasSelected  -> OptionState.CORRECT
-        correctId != null && answer.answerId == correctId && !wasSelected -> OptionState.MISSED
-        wasSelected && (correctId == null || answer.answerId != correctId) -> OptionState.INCORRECT
+        correctIds.isNotEmpty() && answer.answerId in correctIds  && wasSelected  -> OptionState.CORRECT
+        correctIds.isNotEmpty() && answer.answerId in correctIds  && !wasSelected -> OptionState.MISSED
+        correctIds.isNotEmpty() && answer.answerId !in correctIds && wasSelected  -> OptionState.INCORRECT
+        // No IDs parseable (fill-in-blank, null json) — fall back to API flag
+        correctIds.isEmpty() && wasSelected && apiSaysCorrect  -> OptionState.CORRECT
+        correctIds.isEmpty() && wasSelected && !apiSaysCorrect -> OptionState.INCORRECT
         else -> OptionState.DEFAULT
     }
 }
 
-//  JSON parsers
+// ── JSON parsers ──────────────────────────────────────────────────────────────
 
-private fun parseCorrectAnswerId(json: String): Int? {
-    return try {
-        val cleaned = json.trim().removeSurrounding("{", "}")
-        val parts   = cleaned.split(",")
-        for (part in parts) {
-            val kv  = part.split(":")
-            if (kv.size == 2) {
-                val key = kv[0].trim().removeSurrounding("\"")
-                if (key == "answer_id" || key == "answerId") return kv[1].trim().toIntOrNull()
-            }
-        }
-        null
-    } catch (e: Exception) { null }
-}
+// Regex extracts every answer_id / answerId integer value from any JSON format:
+//   single:   {"answer_id":4306}
+//   array:    [{"answer_id":4300},{"answer_id":4301},{"answer_id":4302}]
+// Splitting on },{ was fragile — it consumed braces and broke toIntOrNull().
+private val answerIdRegex = Regex(""""(?:answer_id|answerId)"\s*:\s*(\d+)""")
+
+private fun parseCorrectAnswerId(json: String): Int? =
+    answerIdRegex.find(json)?.groupValues?.getOrNull(1)?.toIntOrNull()
 
 private fun parseCorrectMatchIds(json: String?): List<Int> {
     if (json.isNullOrBlank()) return emptyList()
-    return try {
-        val objects = json.trim().split("},{", "}, {")
-        objects.mapNotNull { obj ->
-            val cleaned = obj.trim().removeSurrounding("{", "}")
-            val parts   = cleaned.split(",")
-            var id: Int? = null
-            for (part in parts) {
-                val kv  = part.split(":")
-                if (kv.size == 2) {
-                    val key = kv[0].trim().removeSurrounding("\"")
-                    if (key == "answer_id" || key == "answerId") id = kv[1].trim().toIntOrNull()
-                }
-            }
-            id
-        }
-    } catch (e: Exception) { emptyList() }
+    return answerIdRegex.findAll(json)
+        .mapNotNull { it.groupValues.getOrNull(1)?.toIntOrNull() }
+        .toList()
 }
