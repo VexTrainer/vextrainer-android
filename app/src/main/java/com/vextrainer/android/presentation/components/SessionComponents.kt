@@ -16,10 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -41,13 +42,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vextrainer.android.R
 import com.vextrainer.android.domain.model.quiz.QuestionResult
 
-// ── OptionState ───────────────────────────────────────────────────────────────
+//  OptionState 
 
 enum class OptionState {
     DEFAULT,    // Not selected, answer not yet submitted
@@ -57,7 +57,7 @@ enum class OptionState {
     MISSED      // Correct answer user did not select (multi-answer)
 }
 
-// ── AnswerOptionButton ────────────────────────────────────────────────────────
+//  AnswerOptionButton 
 
 @Composable
 fun AnswerOptionButton(
@@ -97,37 +97,39 @@ fun AnswerOptionButton(
     }
 
     OutlinedButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(60.dp),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(
+        onClick  = onClick,
+        enabled  = enabled,
+        modifier = modifier.fillMaxWidth(),   // height removed — MarkdownText needs to wrap
+        shape    = RoundedCornerShape(12.dp),
+        border   = BorderStroke(
             width = if (state != OptionState.DEFAULT) 2.dp else 1.dp,
             color = if (enabled || state == OptionState.DEFAULT) borderColor
                     else borderColor.copy(alpha = 0.5f)
         ),
-        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-            containerColor = containerColor,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor         = containerColor,
             disabledContainerColor = containerColor
         )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
-            // Option letter badge (A, B, C, D)
+            //  Option letter badge (A, B, C …) 
             Surface(
-                shape = CircleShape,
-                color = borderColor.copy(alpha = if (state == OptionState.DEFAULT) 0.15f else 0.25f),
+                shape    = CircleShape,
+                color    = borderColor.copy(
+                    alpha = if (state == OptionState.DEFAULT) 0.15f else 0.25f
+                ),
                 modifier = Modifier.size(28.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = textColor,
+                        text       = label,
+                        style      = MaterialTheme.typography.labelLarge,
+                        color      = textColor,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -135,34 +137,43 @@ fun AnswerOptionButton(
 
             Spacer(Modifier.width(12.dp))
 
+            // Answer text: inline markdown via AnnotatedString
+            // Uses inlineMarkdown() instead of MarkdownText (AndroidView) so
+            // that touches reach the OutlinedButton click handler correctly.
             Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor,
+                text     = inlineMarkdown(text),
+                style    = MaterialTheme.typography.bodyLarge,
+                color    = textColor,
                 modifier = Modifier.weight(1f)
             )
 
-            // Icon for revealed states
+            //  Result icon 
             when (state) {
-                OptionState.CORRECT -> Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = Color(0xFF2E7D32),
-                    modifier = Modifier.size(20.dp)
-                )
-                OptionState.INCORRECT -> Icon(
-                    Icons.Default.Cancel,
-                    contentDescription = null,
-                    tint = Color(0xFFB71C1C),
-                    modifier = Modifier.size(20.dp)
-                )
+                OptionState.CORRECT -> {
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        imageVector        = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint               = Color(0xFF2E7D32),
+                        modifier           = Modifier.size(20.dp)
+                    )
+                }
+                OptionState.INCORRECT -> {
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        imageVector        = Icons.Default.Cancel,
+                        contentDescription = null,
+                        tint               = Color(0xFFB71C1C),
+                        modifier           = Modifier.size(20.dp)
+                    )
+                }
                 else -> {}
             }
         }
     }
 }
 
-// ── QuizProgressBar ───────────────────────────────────────────────────────────
+//  QuizProgressBar 
 
 @Composable
 fun QuizProgressBar(
@@ -172,29 +183,27 @@ fun QuizProgressBar(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.quiz_question_progress, current, total),
+                text  = stringResource(R.string.quiz_question_progress, current, total),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(Modifier.height(6.dp))
         LinearProgressIndicator(
-            progress = { if (total > 0) current.toFloat() / total.toFloat() else 0f },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp),
-            color = MaterialTheme.colorScheme.primary,
+            progress  = { if (total > 0) current.toFloat() / total.toFloat() else 0f },
+            modifier  = Modifier.fillMaxWidth().height(6.dp),
+            color     = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             strokeCap = StrokeCap.Round
         )
     }
 }
 
-// ── ScoreBadge ────────────────────────────────────────────────────────────────
+//  ScoreBadge 
 
 @Composable
 fun ScoreBadge(
@@ -202,26 +211,26 @@ fun ScoreBadge(
     passingScore: Double?,
     modifier: Modifier = Modifier
 ) {
-    val passed = passingScore == null || score >= passingScore
-    val color = if (passed) Color(0xFF2E7D32) else Color(0xFFB71C1C)
-    val bgColor = if (passed) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+    val passed  = passingScore == null || score >= passingScore
+    val color   = if (passed) Color(0xFF2E7D32) else Color(0xFFB71C1C)
+    val bgColor = if (passed) Color(0xFFE8F5E9)  else Color(0xFFFFEBEE)
 
     Surface(
-        shape = CircleShape,
-        color = bgColor,
-        border = BorderStroke(2.dp, color),
+        shape    = CircleShape,
+        color    = bgColor,
+        border   = BorderStroke(2.dp, color),
         modifier = modifier.size(120.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "%.0f".format(score),
-                    fontSize = 36.sp,
+                    text       = "%.0f".format(score),
+                    fontSize   = 36.sp,
                     fontWeight = FontWeight.Bold,
-                    color = color
+                    color      = color
                 )
                 Text(
-                    text = "%",
+                    text  = "%",
                     style = MaterialTheme.typography.labelLarge,
                     color = color
                 )
@@ -230,35 +239,35 @@ fun ScoreBadge(
     }
 }
 
-// ── PassFailChip ──────────────────────────────────────────────────────────────
+//  PassFailChip 
 
 @Composable
 fun PassFailChip(
     passed: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val color = if (passed) Color(0xFF2E7D32) else Color(0xFFB71C1C)
-    val bgColor = if (passed) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
-    val label = if (passed) stringResource(R.string.quiz_passed)
-                else stringResource(R.string.quiz_failed)
+    val color   = if (passed) Color(0xFF2E7D32) else Color(0xFFB71C1C)
+    val bgColor = if (passed) Color(0xFFE8F5E9)  else Color(0xFFFFEBEE)
+    val label   = if (passed) stringResource(R.string.quiz_passed)
+                  else stringResource(R.string.quiz_failed)
 
     Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = bgColor,
-        border = BorderStroke(1.dp, color),
+        shape    = RoundedCornerShape(16.dp),
+        color    = bgColor,
+        border   = BorderStroke(1.dp, color),
         modifier = modifier
     ) {
         Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = color,
+            text       = label,
+            style      = MaterialTheme.typography.labelLarge,
+            color      = color,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+            modifier   = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
         )
     }
 }
 
-// ── QuestionResultRow ─────────────────────────────────────────────────────────
+//  QuestionResultRow 
 
 @Composable
 fun QuestionResultRow(
@@ -270,67 +279,67 @@ fun QuestionResultRow(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (result.isCorrect) Color(0xFFF1F8E9)
-                             else Color(0xFFFFF3E0)
+        colors   = CardDefaults.cardColors(
+            containerColor = if (result.isCorrect) Color(0xFFF1F8E9) else Color(0xFFFFF3E0)
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
 
-            // ── Collapsed header row ──────────────────────────────────────
+            //  Collapsed header row 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier          = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    imageVector = if (result.isCorrect) Icons.Default.CheckCircle
-                                  else Icons.Default.Cancel,
+                    imageVector        = if (result.isCorrect) Icons.Default.CheckCircle
+                                         else Icons.Default.Cancel,
                     contentDescription = if (result.isCorrect)
                         stringResource(R.string.quiz_answer_correct)
                     else
                         stringResource(R.string.quiz_answer_incorrect),
-                    tint = if (result.isCorrect) Color(0xFF2E7D32) else Color(0xFFB71C1C),
+                    tint     = if (result.isCorrect) Color(0xFF2E7D32) else Color(0xFFB71C1C),
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Q${index + 1}. ${result.questionText}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF212121), // MaterialTheme.colorScheme.onSurface,
+                    text     = "Q${index + 1}. ${result.questionText}",
+                    style    = MaterialTheme.typography.bodyMedium,
+                    color    = Color(0xFF212121),
                     modifier = Modifier.weight(1f),
                     maxLines = if (expanded) Int.MAX_VALUE else 2
                 )
                 IconButton(
-                    onClick = { expanded = !expanded },
+                    onClick  = { expanded = !expanded },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = if (expanded) Icons.Default.ExpandLess
-                                      else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded)
-                            stringResource(R.string.cd_collapse)
-                        else
-                            stringResource(R.string.cd_expand),
+                        imageVector        = if (expanded) Icons.Default.ExpandLess
+                                             else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) stringResource(R.string.cd_collapse)
+                                             else stringResource(R.string.cd_expand),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // ── Expanded detail ───────────────────────────────────────────
+            //  Expanded detail 
             if (expanded) {
                 Spacer(Modifier.height(8.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
                 Spacer(Modifier.height(8.dp))
 
                 result.explanation?.let { exp ->
                     Text(
-                        text = stringResource(R.string.quiz_explanation_label),
+                        text  = stringResource(R.string.quiz_explanation_label),
                         style = MaterialTheme.typography.labelLarge,
-                        color = Color(0xFF546E7A) // MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFF546E7A)
                     )
                     Spacer(Modifier.height(4.dp))
+                    // inlineMarkdown keeps this inside the Card's click area safely.
                     Text(
-                        text = exp,
+                        text  = inlineMarkdown(exp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
