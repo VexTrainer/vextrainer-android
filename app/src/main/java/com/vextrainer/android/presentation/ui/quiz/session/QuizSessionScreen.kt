@@ -48,6 +48,8 @@ import com.vextrainer.android.domain.model.quiz.QuizQuestion
 import com.vextrainer.android.presentation.components.AnswerOptionButton
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
+import com.vextrainer.android.presentation.components.MarkdownText
+import com.vextrainer.android.presentation.components.inlineMarkdown
 import com.vextrainer.android.presentation.components.OptionState
 import com.vextrainer.android.presentation.components.QuizProgressBar
 import com.vextrainer.android.presentation.components.VexTopAppBar
@@ -61,16 +63,15 @@ fun QuizSessionScreen(
     onHomeClick: () -> Unit,
     viewModel: QuizSessionViewModel = hiltViewModel()
 ) {
-    val uiState          by viewModel.uiState.collectAsStateWithLifecycle()
-    var showExitDialog   by remember { mutableStateOf(false) }
+    val uiState        by viewModel.uiState.collectAsStateWithLifecycle()
+    var showExitDialog by remember { mutableStateOf(false) }
 
     BackHandler { showExitDialog = true }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is QuizSessionEvent.NavigateToResults ->
-                    onNavigateToResults(event.attemptId)
+                is QuizSessionEvent.NavigateToResults -> onNavigateToResults(event.attemptId)
             }
         }
     }
@@ -121,10 +122,8 @@ fun QuizSessionScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(modifier = Modifier.size(48.dp))
                             Spacer(Modifier.height(16.dp))
-                            Text(
-                                text  = stringResource(R.string.quiz_completing),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Text(text = stringResource(R.string.quiz_completing),
+                                 style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -151,7 +150,7 @@ fun QuizSessionScreen(
     }
 }
 
-// ── Question content dispatcher ───────────────────────────────────────────────
+//  Question content
 
 @Composable
 private fun QuizQuestionContent(
@@ -173,6 +172,7 @@ private fun QuizQuestionContent(
     ) {
         QuizProgressBar(current = uiState.progressDisplay, total = uiState.totalQuestions)
 
+        //  Question type hint 
         val hint = when {
             uiState.isMatchingQuestion ->
                 stringResource(R.string.quiz_match_instruction)
@@ -185,31 +185,36 @@ private fun QuizQuestionContent(
                  color = MaterialTheme.colorScheme.primary)
         }
 
+        //  Question text — rendered as Markdown 
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors   = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             )
         ) {
-            Text(
-                text      = question.questionText,
-                style     = MaterialTheme.typography.bodyLarge,
-                modifier  = Modifier.padding(16.dp),
-                textAlign = TextAlign.Start,
-                color     = MaterialTheme.colorScheme.onPrimaryContainer
+            MarkdownText(
+                text     = question.questionText,
+                color    = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontSize = 16f,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
             )
         }
 
+        //  Answer options 
         if (uiState.isMatchingQuestion) {
             MatchingQuestionContent(
                 answers        = question.answers,
                 matchingPairs  = uiState.matchingPairs,
                 selectedLeftId = uiState.selectedLeftId,
                 isRevealed     = isRevealed,
-                correctRIds = parseCorrectMatchIds(uiState.answerResult?.correctAnswerJson),
+                correctRIds    = parseCorrectMatchIds(uiState.answerResult?.correctAnswerJson),
                 onPairSelected = onSelectMatchingAnswer
             )
         } else {
+            // AnswerOptionButton renders answer text — update SessionComponents.kt
+            // to use MarkdownText internally for full markdown support in answer options.
             question.answers.forEachIndexed { index, answer ->
                 val optionState = resolveOptionState(
                     answer       = answer,
@@ -218,25 +223,26 @@ private fun QuizQuestionContent(
                     isRevealed   = isRevealed
                 )
                 AnswerOptionButton(
-                    label       = OPTION_LABELS.getOrElse(index) { "${index + 1}" },
-                    text        = answer.answerText,
-                    state       = optionState,
-                    enabled     = !isRevealed,
-                    onClick     = { onSelectAnswer(answer.answerId) }
+                    label   = OPTION_LABELS.getOrElse(index) { "${index + 1}" },
+                    text    = answer.answerText,
+                    state   = optionState,
+                    enabled = !isRevealed,
+                    onClick = { onSelectAnswer(answer.answerId) }
                 )
             }
         }
 
+        //  Feedback / explanation — rendered as Markdown 
         uiState.answerResult?.let { result ->
             if (isRevealed) FeedbackCard(answerResult = result)
         }
 
+        //  Action buttons 
         if (!isRevealed) {
             Button(
                 onClick  = onSubmit,
                 enabled  = uiState.selectedAnswerIds.isNotEmpty() ||
-                           (uiState.isMatchingQuestion && uiState.matchingPairs.size ==
-                            question.answers.count { it.matchSide == "L" }),
+                           (uiState.isMatchingQuestion && uiState.matchingComplete),
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Text(text = stringResource(R.string.quiz_submit_button),
@@ -254,7 +260,7 @@ private fun QuizQuestionContent(
     }
 }
 
-// ── Matching question ─────────────────────────────────────────────────────────
+//  Matching question 
 
 private val PAIR_COLORS = listOf(
     Pair(Color(0xFFE3F2FD), Color(0xFF1565C0)),
@@ -273,21 +279,23 @@ private fun MatchingQuestionContent(
     correctRIds: List<Int>,
     onPairSelected: (answerId: Int, matchSide: String) -> Unit
 ) {
-    val leftItems    = answers.filter { it.matchSide == "L" }
-    val rightItems   = answers.filter { it.matchSide == "R" }
+    val leftItems     = answers.filter { it.matchSide == "L" }
+    val rightItems    = answers.filter { it.matchSide == "R" }
     val pairedLeftIds = matchingPairs.map { it.first }
 
     Row(
         modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        //  Left column 
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = "Component", style = MaterialTheme.typography.labelLarge,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                  modifier = Modifier.padding(bottom = 2.dp))
+
             leftItems.forEach { answer ->
-                val pairIndex = pairedLeftIds.indexOf(answer.answerId)
-                val isPaired  = pairIndex >= 0
+                val pairIndex  = pairedLeftIds.indexOf(answer.answerId)
+                val isPaired   = pairIndex >= 0
                 val isSelected = selectedLeftId == answer.answerId
 
                 val (bgColor, borderColor) = when {
@@ -304,22 +312,26 @@ private fun MatchingQuestionContent(
                                        MaterialTheme.colorScheme.outline)
                 }
 
+                val textColor = if (isPaired || isSelected) borderColor
+                                else MaterialTheme.colorScheme.onSurface
+
                 MatchingItemButton(
                     text        = answer.answerText,
                     borderColor = borderColor,
                     bgColor     = bgColor,
-                    textColor   = if (isPaired || isSelected) borderColor
-                                  else MaterialTheme.colorScheme.onSurface,
+                    textColor   = textColor,
                     enabled     = !isRevealed,
                     onClick     = { onPairSelected(answer.answerId, "L") }
                 )
             }
         }
 
+        //  Right column 
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = "Purpose", style = MaterialTheme.typography.labelLarge,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                  modifier = Modifier.padding(bottom = 2.dp))
+
             rightItems.forEach { answer ->
                 val pairedLeftId = matchingPairs.find { it.second == answer.answerId }?.first
                 val pairIndex    = if (pairedLeftId != null) pairedLeftIds.indexOf(pairedLeftId) else -1
@@ -327,20 +339,21 @@ private fun MatchingQuestionContent(
                 val isCorrectR   = isRevealed && answer.answerId in correctRIds
 
                 val (bgColor, borderColor) = when {
-                    isRevealed && isPaired -> {
+                    isRevealed && isPaired ->
                         if (isCorrectR) Pair(Color(0xFFE8F5E9), Color(0xFF2E7D32))
                         else Pair(Color(0xFFFFEBEE), Color(0xFFB71C1C))
-                    }
                     isPaired -> PAIR_COLORS[pairIndex % PAIR_COLORS.size]
                     else     -> Pair(MaterialTheme.colorScheme.surface,
                                      MaterialTheme.colorScheme.outline)
                 }
 
+                val textColor = if (isPaired) borderColor else MaterialTheme.colorScheme.onSurface
+
                 MatchingItemButton(
                     text        = answer.answerText,
                     borderColor = borderColor,
                     bgColor     = bgColor,
-                    textColor   = if (isPaired) borderColor else MaterialTheme.colorScheme.onSurface,
+                    textColor   = textColor,
                     enabled     = !isRevealed,
                     onClick     = { onPairSelected(answer.answerId, "R") }
                 )
@@ -363,6 +376,10 @@ private fun MatchingQuestionContent(
     }
 }
 
+/**
+ * Button used for matching question items.
+ * Answer text is rendered via [MarkdownText] so inline code and formatting display correctly.
+ */
 @Composable
 private fun MatchingItemButton(
     text: String,
@@ -383,15 +400,26 @@ private fun MatchingItemButton(
             contentColor           = textColor,
             disabledContentColor   = textColor
         ),
-        modifier = Modifier.fillMaxWidth().height(56.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
     ) {
-        Text(text = text, style = MaterialTheme.typography.bodyMedium,
-             textAlign = TextAlign.Center, color = textColor, maxLines = 2)
+        // inlineMarkdown + Text keeps touches fully passable to the OutlinedButton
+        Text(
+            text     = inlineMarkdown(text),
+            style    = MaterialTheme.typography.bodyMedium,
+            color    = textColor,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
-// ── Feedback card ─────────────────────────────────────────────────────────────
+//  Feedback card
 
+/**
+ * Shows correct/incorrect result and explanation after an answer is submitted.
+ * Explanation is rendered via [MarkdownText] so code snippets and formatting display correctly.
+ */
 @Composable
 private fun FeedbackCard(
     answerResult: com.vextrainer.android.domain.model.quiz.AnswerResult
@@ -405,19 +433,28 @@ private fun FeedbackCard(
         colors   = CardDefaults.cardColors(containerColor = bgColor)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = if (isCorrect) stringResource(R.string.quiz_correct)
-                        else stringResource(R.string.quiz_incorrect),
-                 style = MaterialTheme.typography.titleLarge,
-                 color = textColor, fontWeight = FontWeight.Bold)
+            Text(
+                text       = if (isCorrect) stringResource(R.string.quiz_correct)
+                             else stringResource(R.string.quiz_incorrect),
+                style      = MaterialTheme.typography.titleLarge,
+                color      = textColor,
+                fontWeight = FontWeight.Bold
+            )
             answerResult.explanation?.let { exp ->
                 Spacer(Modifier.height(6.dp))
-                Text(text = exp, style = MaterialTheme.typography.bodyMedium, color = textColor)
+                // Explanation rendered as Markdown — supports inline code, bold, etc.
+                MarkdownText(
+                    text     = exp,
+                    color    = textColor,
+                    fontSize = 14f,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
 
-// ── Option state resolver ─────────────────────────────────────────────────────
+//  Option state resolver 
 
 private fun resolveOptionState(
     answer: QuizAnswer,
@@ -437,6 +474,8 @@ private fun resolveOptionState(
         else -> OptionState.DEFAULT
     }
 }
+
+//  JSON parsers
 
 private fun parseCorrectAnswerId(json: String): Int? {
     return try {

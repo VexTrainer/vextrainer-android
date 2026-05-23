@@ -48,8 +48,10 @@ fun QuizCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // inlineMarkdown keeps `` `code` ``, **bold** etc. readable
+                // while staying inside the ElevatedCard's click area.
                 Text(
-                    text = quiz.quizTitle,
+                    text     = inlineMarkdown(quiz.quizTitle),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
@@ -72,7 +74,7 @@ fun QuizCard(
             quiz.quizDescription?.let { desc ->
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = desc,
+                    text     = inlineMarkdown(desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,

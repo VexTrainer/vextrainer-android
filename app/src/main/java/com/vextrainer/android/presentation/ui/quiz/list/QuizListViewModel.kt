@@ -10,9 +10,11 @@ import com.vextrainer.android.presentation.navigation.Screen
 import com.vextrainer.android.presentation.util.UiText
 import com.vextrainer.android.presentation.util.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +25,11 @@ data class QuizListUiState(
     val quizzes: List<QuizSummary> = emptyList(),
     val error: UiText? = null
 )
+
+sealed class QuizListEvent {
+    /** Fired when the category contains exactly one quiz — skip the list screen. */
+    data class NavigateToDetail(val quizId: Int) : QuizListEvent()
+}
 
 @HiltViewModel
 class QuizListViewModel @Inject constructor(
@@ -39,6 +46,9 @@ class QuizListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(QuizListUiState(categoryName = categoryName))
     val uiState: StateFlow<QuizListUiState> = _uiState.asStateFlow()
 
+    private val _events = Channel<QuizListEvent>()
+    val events = _events.receiveAsFlow()
+
     init {
         loadQuizzes()
     }
@@ -49,12 +59,17 @@ class QuizListViewModel @Inject constructor(
             getQuizzesByCategoryUseCase(categoryId)
                 .onSuccess { quizzes ->
                     _uiState.update { it.copy(isLoading = false, quizzes = quizzes) }
+                    // Only one quiz in this category — navigate straight to the detail
+                    // screen so the user never sees a one-item list.
+                    if (quizzes.size == 1) {
+                        _events.send(QuizListEvent.NavigateToDetail(quizzes.first().quizId))
+                    }
                 }
                 .onFailure { e ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = e.toUiText(R.string.error_load_quizzes)
+                            error     = e.toUiText(R.string.error_load_quizzes)
                         )
                     }
                 }

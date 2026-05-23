@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,9 +29,24 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 fun QuizListScreen(
     onQuizClick: (quizId: Int) -> Unit,
     onHomeClick: () -> Unit,
+    // Separate callback for the single-quiz case so NavGraph can pop QuizList
+    // off the back stack before navigating to QuizDetail, making the Android
+    // back button from QuizDetail skip QuizList and return to QuizCategories.
+    onSingleQuizAutoNavigate: (quizId: Int) -> Unit = onQuizClick,
     viewModel: QuizListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // When the category has exactly one quiz, navigate directly to its detail
+    // screen without showing the user a list with a single entry.
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is QuizListEvent.NavigateToDetail ->
+                    onSingleQuizAutoNavigate(event.quizId)
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -57,7 +73,10 @@ fun QuizListScreen(
                     modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = stringResource(R.string.quiz_list_empty), textAlign = TextAlign.Center)
+                    Text(
+                        text      = stringResource(R.string.quiz_list_empty),
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 else -> LazyColumn(

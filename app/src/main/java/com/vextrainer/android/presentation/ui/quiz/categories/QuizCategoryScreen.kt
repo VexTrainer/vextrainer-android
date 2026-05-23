@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Icon
@@ -100,7 +100,7 @@ private fun CategoryList(
     onCategoryClick: (categoryId: Int, categoryName: String) -> Unit
 ) {
     LazyColumn(
-        contentPadding      = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        contentPadding      = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // ── Screen heading ────────────────────────────────────────────────
@@ -136,16 +136,17 @@ private fun CategoryList(
                 }
 
                 if (isExpanded) {
-                    items(
-                        items = category.subcategories,
-                        key   = { it.categoryId }
-                    ) { sub ->
-                        QuizCategoryCard(
-                            category   = sub,
-                            onClick    = { onCategoryClick(sub.categoryId, sub.categoryName) },
-                            isExpanded = null,
-                            modifier   = Modifier.padding(start = 8.dp)
-                        )
+                    item(key = "subs_${category.categoryId}") {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            category.subcategories.forEach { sub ->
+                                QuizCategoryCard(
+                                    category   = sub,
+                                    onClick    = { onCategoryClick(sub.categoryId, sub.categoryName) },
+                                    isExpanded = null,
+                                    modifier   = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }

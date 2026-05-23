@@ -129,6 +129,14 @@ fun NavGraph(
                     onQuizClick = { quizId ->
                         navController.navigate(Screen.QuizDetail.createRoute(quizId))
                     },
+                    // When there is only one quiz, pop QuizList off the back stack
+                    // so the Android back button from QuizDetail returns to
+                    // QuizCategories instead of stopping at the one-item list.
+                    onSingleQuizAutoNavigate = { quizId ->
+                        navController.navigate(Screen.QuizDetail.createRoute(quizId)) {
+                            popUpTo(Screen.QuizList.route) { inclusive = true }
+                        }
+                    },
                     onHomeClick = goHome
                 )
             }

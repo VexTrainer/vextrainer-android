@@ -36,7 +36,9 @@ import com.vextrainer.android.R
 import com.vextrainer.android.domain.model.quiz.QuizDetail
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
+import com.vextrainer.android.presentation.components.MarkdownText
 import com.vextrainer.android.presentation.components.VexTopAppBar
+import com.vextrainer.android.presentation.components.inlineMarkdown
 
 @Composable
 fun QuizDetailScreen(
@@ -115,32 +117,50 @@ private fun QuizDetailContent(
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+
+                // Title — rendered with inline markdown
                 Text(
-                    text  = quiz.quizTitle,
+                    text  = inlineMarkdown(quiz.quizTitle),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+
                 Spacer(Modifier.height(4.dp))
+
                 Text(
                     text  = stringResource(R.string.quiz_detail_category, quiz.categoryName),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                // Description — full markdown (may contain code blocks)
                 quiz.quizDescription?.let { desc ->
                     Spacer(Modifier.height(12.dp))
-                    Text(text = desc, style = MaterialTheme.typography.bodyLarge,
-                         color = MaterialTheme.colorScheme.onSurface)
+                    MarkdownText(
+                        text     = desc,
+                        color    = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
+
                 Spacer(Modifier.height(12.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
+
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = stringResource(R.string.quiz_questions_count, quiz.totalQuestions), sublabel = null)
+                    StatItem(
+                        label = stringResource(R.string.quiz_questions_count, quiz.totalQuestions)
+                    )
                     quiz.passingScore?.let { score ->
-                        StatItem(label = stringResource(R.string.quiz_passing_score, "%.0f".format(score)), sublabel = null)
+                        StatItem(
+                            label = stringResource(
+                                R.string.quiz_passing_score, "%.0f".format(score)
+                            )
+                        )
                     }
                 }
             }
@@ -148,26 +168,38 @@ private fun QuizDetailContent(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors   = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = stringResource(R.string.quiz_detail_your_stats),
-                     style = MaterialTheme.typography.titleLarge,
-                     color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text  = stringResource(R.string.quiz_detail_your_stats),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.height(8.dp))
                 if (quiz.userAttempts == 0) {
-                    Text(text = stringResource(R.string.quiz_detail_not_attempted),
-                         style = MaterialTheme.typography.bodyMedium,
-                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text  = stringResource(R.string.quiz_detail_not_attempted),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 } else {
-                    Text(text = stringResource(R.string.quiz_attempts_count, quiz.userAttempts),
-                         style = MaterialTheme.typography.bodyMedium,
-                         color = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        text  = stringResource(R.string.quiz_attempts_count, quiz.userAttempts),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     quiz.userBestScore?.let { best ->
                         Spacer(Modifier.height(4.dp))
-                        Text(text = stringResource(R.string.quiz_best_score, "%.0f".format(best)),
-                             style = MaterialTheme.typography.bodyMedium,
-                             color = MaterialTheme.colorScheme.primary)
+                        Text(
+                            text  = stringResource(
+                                R.string.quiz_best_score, "%.0f".format(best)
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -178,26 +210,33 @@ private fun QuizDetailContent(
         Button(
             onClick  = onStartQuiz,
             enabled  = !isStarting,
-            modifier = Modifier.fillMaxWidth().height(54.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
         ) {
             if (isStarting)
-                CircularProgressIndicator(modifier = Modifier.size(22.dp),
-                    color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier    = Modifier.size(22.dp),
+                    color       = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
             else
-                Text(text = stringResource(R.string.quiz_start_button),
-                     style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text  = stringResource(R.string.quiz_start_button),
+                    style = MaterialTheme.typography.titleLarge
+                )
         }
     }
 }
 
+// sublabel removed — all callers passed null, so the parameter was dead code
 @Composable
-private fun StatItem(label: String, sublabel: String?) {
+private fun StatItem(label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.titleLarge,
-             color = MaterialTheme.colorScheme.primary)
-        sublabel?.let {
-            Text(text = it, style = MaterialTheme.typography.bodySmall,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Text(
+            text  = label,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.vextrainer.android.presentation.components
 
+import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,14 +21,30 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.vextrainer.android.R
+import io.noties.markwon.Markwon
+
+// ── Loading / Error ───────────────────────────────────────────────────────────
 
 @Composable
 fun LoadingOverlay(modifier: Modifier = Modifier) {
@@ -68,6 +85,119 @@ fun ErrorCard(
     }
 }
 
+// ── Inline markdown → AnnotatedString ────────────────────────────────────────
+
+/**
+ * Converts a string with simple inline Markdown to an [AnnotatedString] for
+ * use with the standard Compose [Text] composable.
+ *
+ * Supported syntax:
+ *  - `` `code` ``  → monospace + light grey background
+ *  - `**bold**`    → bold
+ *  - `*italic*`    → italic
+ *
+ * Use this inside clickable containers (buttons, cards) where [MarkdownText]
+ * cannot be used because its underlying [android.widget.TextView] intercepts
+ * touch events. For answer options, explanations inside buttons, etc.
+ *
+ * For full Markdown (code blocks, lists, images) outside buttons, use
+ * [MarkdownText] instead.
+ */
+fun inlineMarkdown(text: String): AnnotatedString = buildAnnotatedString {
+    val codeStyle   = SpanStyle(
+        fontFamily = FontFamily.Monospace,
+        background = Color(0x22808080)   // subtle grey tint for inline code
+    )
+    val boldStyle   = SpanStyle(fontWeight = FontWeight.Bold)
+    val italicStyle = SpanStyle(fontStyle  = FontStyle.Italic)
+
+    var i = 0
+    while (i < text.length) {
+        when {
+            // ── Inline code: `code` ───────────────────────────────────────
+            text[i] == '`' -> {
+                val end = text.indexOf('`', i + 1)
+                if (end > i) {
+                    withStyle(codeStyle) { append(text.substring(i + 1, end)) }
+                    i = end + 1
+                } else {
+                    append(text[i++])
+                }
+            }
+            // ── Bold: **text** ────────────────────────────────────────────
+            text.startsWith("**", i) -> {
+                val end = text.indexOf("**", i + 2)
+                if (end > i) {
+                    withStyle(boldStyle) { append(text.substring(i + 2, end)) }
+                    i = end + 2
+                } else {
+                    append(text[i++])
+                }
+            }
+            // ── Italic: *text* (not part of **) ──────────────────────────
+            text[i] == '*' -> {
+                val end = text.indexOf('*', i + 1)
+                if (end > i) {
+                    withStyle(italicStyle) { append(text.substring(i + 1, end)) }
+                    i = end + 1
+                } else {
+                    append(text[i++])
+                }
+            }
+            else -> append(text[i++])
+        }
+    }
+}
+
+// ── Full Markdown text (outside buttons only) ─────────────────────────────────
+
+/**
+ * Renders [text] as full Markdown using Markwon inside a native [TextView].
+ *
+ * Use for question text, explanations, and other longer content that lives
+ * OUTSIDE clickable containers. Markwon adds ClickableSpan objects internally
+ * which intercept touch events, making it incompatible with buttons or cards
+ * that have their own click handlers.
+ *
+ * For short inline text inside buttons, use [inlineMarkdown] with [Text] instead.
+ */
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun MarkdownText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    fontSize: Float = 16f
+) {
+    val context       = LocalContext.current
+    val resolvedColor = if (color != Color.Unspecified) color
+                        else MaterialTheme.colorScheme.onSurface
+    val colorInt      = resolvedColor.toArgb()
+    val markwon       = remember(context) { Markwon.builder(context).build() }
+
+    AndroidView(
+        factory = { ctx ->
+            TextView(ctx).apply {
+                textSize               = fontSize
+                setLineSpacing(0f, 1.4f)
+                isClickable            = false
+                isFocusable            = false
+                isFocusableInTouchMode = false
+            }
+        },
+        update  = { tv ->
+            tv.setTextColor(colorInt)
+            markwon.setMarkdown(tv, text)
+        },
+        // pointerInteropFilter returning false means "I don't want this touch event"
+        // so Compose propagates it up to the parent (e.g. OutlinedButton), making
+        // the full answer option area tappable — not just the label badge.
+        modifier = modifier.pointerInteropFilter { false }
+    )
+}
+
+// ── Top app bar ───────────────────────────────────────────────────────────────
+
 /**
  * Standard top app bar for VexTrainer.
  *
@@ -77,28 +207,20 @@ fun ErrorCard(
  * The [onBack] parameter is kept for source compatibility with screens not yet
  * updated, but the back arrow is intentionally not rendered — Android's gesture
  * navigation and system back button handle back navigation.
- *
- * @param title       Screen title (used as accessibility label; not displayed
- *                    visually since the logo replaces the title slot).
- * @param onLogoClick Called when the user taps the logo/brand row. Pass a
- *                    lambda that navigates to the home screen. Pass null (or
- *                    omit) on the home screen itself so the tap is a no-op.
- * @param onBack      Retained for source compatibility — has no visual effect.
- * @param actions     Trailing action icons (History, Search, etc.).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VexTopAppBar(
     title: String,
     onLogoClick: (() -> Unit)? = null,
-    onBack: (() -> Unit)? = null,   // kept for source compat; back arrow not shown
+    onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = if (onLogoClick != null)
+                modifier          = if (onLogoClick != null)
                     Modifier.clickable(onClick = onLogoClick)
                 else
                     Modifier
@@ -117,7 +239,7 @@ fun VexTopAppBar(
                 )
             }
         },
-        navigationIcon = {},   // back arrow removed — Android handles back navigation
+        navigationIcon = {},
         actions        = actions,
         colors         = TopAppBarDefaults.topAppBarColors(
             containerColor             = MaterialTheme.colorScheme.primary,
