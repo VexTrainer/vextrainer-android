@@ -1,15 +1,14 @@
 package com.vextrainer.android.presentation.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Grading
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,9 +24,9 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Screen.QuizCategories, R.string.nav_quizzes, Icons.Default.Quiz),
-    BottomNavItem(Screen.Modules,         R.string.nav_lessons,  Icons.Default.MenuBook),
-    BottomNavItem(Screen.Profile,         R.string.nav_profile,  Icons.Default.Person)
+    BottomNavItem(Screen.QuizCategories, R.string.nav_quizzes, Icons.Default.Grading),
+    BottomNavItem(Screen.Modules,        R.string.nav_lessons,  Icons.Default.MenuBook),
+    BottomNavItem(Screen.Profile,        R.string.nav_profile,  Icons.Default.Person)
 )
 
 /** Routes where the bottom nav is visible. */
@@ -41,7 +40,7 @@ val bottomNavRoutes = setOf(
 @Composable
 fun VexBottomNavBar(navController: NavController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
+    val currentRoute    = backStackEntry?.destination?.route
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
         bottomNavItems.forEach { item ->
@@ -63,13 +62,11 @@ fun VexBottomNavBar(navController: NavController) {
                         contentDescription = stringResource(item.labelRes)
                     )
                 },
-                label  = { Text(stringResource(item.labelRes)) },
+                label  = null,   // labels removed — icons only
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor   = MaterialTheme.colorScheme.primary,
-                    selectedTextColor   = MaterialTheme.colorScheme.primary,
                     indicatorColor      = MaterialTheme.colorScheme.primaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
