@@ -4,7 +4,7 @@ import android.net.Uri
 
 sealed class Screen(val route: String) {
 
-    // ── Auth ──────────────────────────────────────────────────────────────────
+    // Auth
     object Login    : Screen("auth/login")
 
     object Register : Screen("auth/register?email={email}") {
@@ -14,7 +14,7 @@ sealed class Screen(val route: String) {
             else "auth/register?email=${Uri.encode(email)}"
     }
 
-    // ── Quiz ──────────────────────────────────────────────────────────────────
+    // Quiz
     object QuizCategories : Screen("quiz/categories")
 
     object QuizList : Screen("quiz/categories/{categoryId}/quizzes?categoryName={categoryName}") {
@@ -41,7 +41,7 @@ sealed class Screen(val route: String) {
 
     object QuizHistory : Screen("quiz/history")
 
-    // ── Lessons ───────────────────────────────────────────────────────────────
+    // Lessons
     object Modules : Screen("lessons/modules")
 
     object LessonList : Screen("lessons/modules/{moduleId}/lessons?moduleName={moduleName}") {
@@ -51,11 +51,16 @@ sealed class Screen(val route: String) {
             "lessons/modules/$moduleId/lessons?moduleName=${Uri.encode(moduleName)}"
     }
 
-    object TopicList : Screen("lessons/lessons/{lessonId}/topics?lessonTitle={lessonTitle}") {
+    object TopicList : Screen(
+        "lessons/lessons/{lessonId}/topics?lessonTitle={lessonTitle}&moduleName={moduleName}"
+    ) {
         const val ARG_LESSON_ID    = "lessonId"
         const val ARG_LESSON_TITLE = "lessonTitle"
-        fun createRoute(lessonId: Int, lessonTitle: String) =
-            "lessons/lessons/$lessonId/topics?lessonTitle=${Uri.encode(lessonTitle)}"
+        const val ARG_MODULE_NAME  = "moduleName"
+        fun createRoute(lessonId: Int, lessonTitle: String, moduleName: String) =
+            "lessons/lessons/$lessonId/topics" +
+            "?lessonTitle=${Uri.encode(lessonTitle)}" +
+            "&moduleName=${Uri.encode(moduleName)}"
     }
 
     object TopicViewer : Screen("lessons/topics/{topicId}") {
@@ -63,7 +68,7 @@ sealed class Screen(val route: String) {
         fun createRoute(topicId: Int) = "lessons/topics/$topicId"
     }
 
-    // ── Profile & Info ────────────────────────────────────────────────────────
+    // Profile & Info
     object Profile       : Screen("profile")
     object About         : Screen("info/about")
     object ContactUs     : Screen("info/contact")

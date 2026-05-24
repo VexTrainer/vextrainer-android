@@ -242,63 +242,88 @@ private fun TopicContent(
             }
         }
 
-        Spacer(Modifier.height(24.dp))
-
-        if (!isRead) {
-            Button(
-                onClick  = onMarkRead,
-                enabled  = !isMarkingRead,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
-            ) {
-                if (isMarkingRead)
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
-                else
-                    Text(text = stringResource(R.string.topic_mark_read_button),
-                         style = MaterialTheme.typography.labelLarge)
-            }
-        } else {
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null,
-                     tint = Color(0xFF2E7D32), modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(text = stringResource(R.string.topic_marked_read),
-                     style = MaterialTheme.typography.bodyMedium,
-                     color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
-            }
-        }
-
         Spacer(Modifier.height(16.dp))
 
+        // Previous · Mark as Read · Next — all in one row
         Row(
             modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment     = Alignment.CenterVertically
         ) {
+            // Previous
             if (topic.previousTopicId != null) {
-                OutlinedButton(onClick = onPrevious, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack,
-                         contentDescription = stringResource(R.string.topic_prev_button),
-                         modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(text = stringResource(R.string.topic_prev_button), maxLines = 1)
+                OutlinedButton(
+                    onClick  = onPrevious,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.topic_prev_button),
+                        modifier           = Modifier.size(18.dp)
+                    )
                 }
-            } else { Spacer(Modifier.weight(1f)) }
+            } else {
+                Spacer(Modifier.weight(1f))
+            }
 
-            Spacer(Modifier.width(12.dp))
+            // Mark as Read / Already read indicator
+            if (!isRead) {
+                Button(
+                    onClick  = onMarkRead,
+                    enabled  = !isMarkingRead,
+                    modifier = Modifier.weight(2f).height(48.dp)
+                ) {
+                    if (isMarkingRead)
+                        CircularProgressIndicator(
+                            modifier    = Modifier.size(18.dp),
+                            color       = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    else
+                        Text(
+                            text     = stringResource(R.string.topic_mark_read_button),
+                            style    = MaterialTheme.typography.labelLarge,
+                            maxLines = 1
+                        )
+                }
+            } else {
+                Row(
+                    modifier            = Modifier.weight(2f),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment   = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint               = Color(0xFF2E7D32),
+                        modifier           = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text  = stringResource(R.string.topic_marked_read),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF2E7D32),
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+                }
+            }
 
+            // Next
             if (topic.nextTopicId != null) {
-                Button(onClick = onNext, modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.topic_next_button), maxLines = 1)
-                    Spacer(Modifier.width(4.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward,
-                         contentDescription = stringResource(R.string.topic_next_button),
-                         modifier = Modifier.size(18.dp))
+                Button(
+                    onClick  = onNext,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = stringResource(R.string.topic_next_button),
+                        modifier           = Modifier.size(18.dp)
+                    )
                 }
-            } else { Spacer(Modifier.weight(1f)) }
+            } else {
+                Spacer(Modifier.weight(1f))
+            }
         }
 
         Spacer(Modifier.height(24.dp))

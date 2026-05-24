@@ -88,7 +88,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Auth — Register ───────────────────────────────────────────
+            // Auth: Register
             composable(
                 route     = Screen.Register.route,
                 arguments = listOf(
@@ -104,18 +104,18 @@ fun NavGraph(
                 )
             }
 
-            // ── Quiz — Categories (home) ───────────────────────────────────
+            // Quiz: Categories (home)
             composable(Screen.QuizCategories.route) {
                 QuizCategoryScreen(
                     onCategoryClick = { id, name ->
                         navController.navigate(Screen.QuizList.createRoute(id, name))
                     },
                     onHistoryClick  = { navController.navigate(Screen.QuizHistory.route) },
-                    onHomeClick     = {}   // already home — no-op
+                    onHomeClick     = {}
                 )
             }
 
-            // ── Quiz — List ───────────────────────────────────────────────
+            // Quiz: List
             composable(
                 route     = Screen.QuizList.route,
                 arguments = listOf(
@@ -141,7 +141,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Quiz — Detail ─────────────────────────────────────────────
+            // Quiz: Detail
             composable(
                 route     = Screen.QuizDetail.route,
                 arguments = listOf(
@@ -158,7 +158,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Quiz — Session ────────────────────────────────────────────
+            // Quiz: Session
             composable(
                 route     = Screen.QuizSession.route,
                 arguments = listOf(
@@ -176,7 +176,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Quiz — Results ────────────────────────────────────────────
+            // Quiz: Results
             composable(
                 route     = Screen.QuizResult.route,
                 arguments = listOf(
@@ -198,7 +198,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Quiz — History ────────────────────────────────────────────
+            // Quiz: History
             composable(Screen.QuizHistory.route) {
                 QuizHistoryScreen(
                     onAttemptClick = { attemptId ->
@@ -208,7 +208,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Lessons — Modules (home) ──────────────────────────────────
+            // Lessons: Modules (home)
             composable(Screen.Modules.route) {
                 ModulesScreen(
                     onModuleClick = { moduleId, moduleName ->
@@ -218,7 +218,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Lessons — Lesson list ─────────────────────────────────────
+            // Lessons: Lesson list
             composable(
                 route     = Screen.LessonList.route,
                 arguments = listOf(
@@ -229,19 +229,24 @@ fun NavGraph(
                 )
             ) {
                 LessonListScreen(
-                    onLessonClick = { lessonId, lessonTitle ->
-                        navController.navigate(Screen.TopicList.createRoute(lessonId, lessonTitle))
+                    onLessonClick = { lessonId, lessonTitle, moduleName ->
+                        navController.navigate(
+                            Screen.TopicList.createRoute(lessonId, lessonTitle, moduleName)
+                        )
                     },
                     onHomeClick = goHome
                 )
             }
 
-            // ── Lessons — Topic list ──────────────────────────────────────
+            // Lessons: Topic list
             composable(
                 route     = Screen.TopicList.route,
                 arguments = listOf(
                     navArgument(Screen.TopicList.ARG_LESSON_ID) { type = NavType.IntType },
                     navArgument(Screen.TopicList.ARG_LESSON_TITLE) {
+                        type = NavType.StringType; defaultValue = ""
+                    },
+                    navArgument(Screen.TopicList.ARG_MODULE_NAME) {
                         type = NavType.StringType; defaultValue = ""
                     }
                 )
@@ -250,11 +255,16 @@ fun NavGraph(
                     onTopicClick = { topicId ->
                         navController.navigate(Screen.TopicViewer.createRoute(topicId))
                     },
+                    onSingleTopicAutoNavigate = { topicId ->
+                        navController.navigate(Screen.TopicViewer.createRoute(topicId)) {
+                            popUpTo(Screen.TopicList.route) { inclusive = true }
+                        }
+                    },
                     onHomeClick = goHome
                 )
             }
 
-            // ── Lessons — Topic viewer ────────────────────────────────────
+            // Lessons: Topic viewer
             composable(
                 route     = Screen.TopicViewer.route,
                 arguments = listOf(
@@ -273,7 +283,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Profile ───────────────────────────────────────────────────
+            // Profile
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onLogout        = {
@@ -290,7 +300,7 @@ fun NavGraph(
                 )
             }
 
-            // ── Info screens ──────────────────────────────────────────────
+            // Info screens
             composable(Screen.About.route) {
                 AboutScreen(
                     onBack      = { navController.popBackStack() },

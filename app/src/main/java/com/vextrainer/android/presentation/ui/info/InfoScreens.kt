@@ -68,8 +68,9 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
+import androidx.compose.foundation.layout.PaddingValues
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
+// Shared helpers
 
 private fun openUrl(context: android.content.Context, url: String) {
     try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
@@ -85,7 +86,7 @@ private suspend fun fetchMarkdown(url: String): String? = withContext(Dispatcher
     } catch (_: Exception) { null }
 }
 
-// ── Generic markdown content screen ──────────────────────────────────────────
+// Generic markdown content screen
 
 @Composable
 private fun MarkdownContentScreen(
@@ -179,7 +180,7 @@ private fun MarkdownContentScreen(
     }
 }
 
-// ── About ─────────────────────────────────────────────────────────────────────
+// About
 
 @Composable
 fun AboutScreen(
@@ -212,7 +213,7 @@ fun AboutScreen(
     )
 }
 
-// ── Privacy ───────────────────────────────────────────────────────────────────
+// Privacy
 
 @Composable
 fun PrivacyScreen(
@@ -228,7 +229,7 @@ fun PrivacyScreen(
     )
 }
 
-// ── Donate ────────────────────────────────────────────────────────────────────
+// Donate
 
 @Composable
 fun DonateScreen(
@@ -259,7 +260,7 @@ fun DonateScreen(
     )
 }
 
-// ── Contact Us ────────────────────────────────────────────────────────────────
+// Contact Us
 
 @Composable
 fun ContactUsScreen(
@@ -362,9 +363,10 @@ fun ContactUsScreen(
                                     MaterialTheme.colorScheme.primaryContainer
                                 else
                                     MaterialTheme.colorScheme.surface
-                            )
+                            ),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
                         ) {
-                            Text(text = option, style = MaterialTheme.typography.labelLarge,
+                            Text(text = option, style = MaterialTheme.typography.labelLarge, maxLines = 1,
                                  color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
                                          else MaterialTheme.colorScheme.onSurface,
                                  fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
@@ -412,14 +414,14 @@ fun ContactUsScreen(
     }
 }
 
-// ── ContactUsViewModel ────────────────────────────────────────────────────────
+// ContactUsViewModel
 
 @dagger.hilt.android.lifecycle.HiltViewModel
 class ContactUsViewModel @Inject constructor(
     val sendUseCase: SendContactMessageUseCase
 ) : androidx.lifecycle.ViewModel()
 
-// ── Delete Account ────────────────────────────────────────────────────────────
+// Delete Account
 
 @Composable
 fun DeleteAccountScreen(

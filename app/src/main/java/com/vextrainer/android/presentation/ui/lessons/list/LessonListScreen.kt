@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,7 +28,8 @@ import com.vextrainer.android.presentation.components.VexTopAppBar
 
 @Composable
 fun LessonListScreen(
-    onLessonClick: (lessonId: Int, lessonTitle: String) -> Unit,
+    // moduleName added so NavGraph can thread it through to TopicList
+    onLessonClick: (lessonId: Int, lessonTitle: String, moduleName: String) -> Unit,
     onHomeClick: () -> Unit,
     viewModel: LessonListViewModel = hiltViewModel()
 ) {
@@ -58,20 +60,46 @@ fun LessonListScreen(
                     modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = stringResource(R.string.lesson_list_empty),
-                         style = MaterialTheme.typography.bodyLarge,
-                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                         textAlign = TextAlign.Center)
+                    Text(
+                        text      = stringResource(R.string.lesson_list_empty),
+                        style     = MaterialTheme.typography.bodyLarge,
+                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 else -> LazyColumn(
-                    contentPadding      = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding      = PaddingValues(
+                        start  = 16.dp,
+                        end    = 16.dp,
+                        top    = 4.dp,    // reduced top gap
+                        bottom = 16.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    // Module name heading
+                    if (uiState.moduleName.isNotBlank()) {
+                        item(key = "heading") {
+                            Text(
+                                text       = uiState.moduleName,
+                                style      = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color      = MaterialTheme.colorScheme.onSurface,
+                                modifier   = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+                    }
+
                     items(uiState.lessons, key = { it.lessonId }) { lesson ->
                         LessonCard(
                             lesson  = lesson,
-                            onClick = { onLessonClick(lesson.lessonId, lesson.lessonTitle) }
+                            onClick = {
+                                onLessonClick(
+                                    lesson.lessonId,
+                                    lesson.lessonTitle,
+                                    uiState.moduleName
+                                )
+                            }
                         )
                     }
                 }
