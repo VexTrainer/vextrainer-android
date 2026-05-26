@@ -1,3 +1,9 @@
+import java.util.Properties
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+keystoreProperties.load(keystorePropertiesFile.inputStream())
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,13 +21,23 @@ android {
         applicationId = "com.vextrainer.android"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 10
+        versionName = "1.01"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile     = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias      = keystoreProperties["keyAlias"] as String
+            keyPassword   = keystoreProperties["keyPassword"] as String
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -39,7 +55,7 @@ android {
     kotlinOptions { jvmTarget = "17" }
 
     buildFeatures {
-        compose    = true
+        compose     = true
         buildConfig = true
     }
 
@@ -54,8 +70,10 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
-	implementation("io.noties.markwon:image:4.6.2")
-    implementation("io.noties.markwon:image-picasso:4.6.2")  // or image-glide
+	// implementation("io.noties.markwon:image:4.6.2")
+    implementation(libs.markwon.image)
+    //implementation("io.noties.markwon:image-picasso:4.6.2")  // or image-glide
+    implementation(libs.markwon.image.picasso)
 
     // Compose BOM
     implementation(platform(libs.compose.bom))
@@ -64,8 +82,10 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
 
-    // Material Icons Extended — needed for Quiz, History, CheckCircle icons
+    // Material Icons Extended needed for Quiz, History, CheckCircle icons
     implementation("androidx.compose.material:material-icons-extended")
+    // implementation(libs.material.icons.extended)
+    // implementation(libs.materialIconsExtended)
 
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.compose)
@@ -100,8 +120,8 @@ dependencies {
     implementation(libs.security.crypto)
 
     // Credential Manager
-    implementation(libs.credentials)
-    implementation(libs.credentials.play)
+    // implementation(libs.credentials)
+    // implementation(libs.credentials.play)
 
     // Markdown + Syntax Highlighting
     implementation(libs.markwon.core)

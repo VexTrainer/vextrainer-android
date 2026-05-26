@@ -1,6 +1,9 @@
 # Moshi
 -keep class com.vextrainer.android.data.remote.dto.** { *; }
 -keep @com.squareup.moshi.JsonClass class * { *; }
+# Error-prone annotations used by Tink — not needed at runtime, suppress R8 warnings
+-dontwarn com.google.errorprone.annotations.**
+-keep class com.google.errorprone.annotations.** { *; }
 -keepclassmembers class * {
     @com.squareup.moshi.FromJson *;
     @com.squareup.moshi.ToJson *;

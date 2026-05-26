@@ -39,7 +39,7 @@ class SecurePreferences @Inject constructor(
             }
         }
     }
-
+    @Suppress("DEPRECATION")
     private fun buildEncryptedPrefs(fileName: String): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)

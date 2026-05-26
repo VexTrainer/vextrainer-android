@@ -36,7 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+// import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,8 +46,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.credentials.CreatePasswordRequest
-import androidx.credentials.CredentialManager
+// import androidx.credentials.CreatePasswordRequest
+// import androidx.credentials.CredentialManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vextrainer.android.R
@@ -59,15 +59,16 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState          by viewModel.uiState.collectAsStateWithLifecycle()
-    val context           = LocalContext.current
+    // val context           = LocalContext.current
     val focusManager      = LocalFocusManager.current
     var passwordVisible   by remember { mutableStateOf(false) }
-    val credentialManager = remember { CredentialManager.create(context) }
+    // val credentialManager = remember { CredentialManager.create(context) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is LoginEvent.Success -> {
+                is LoginEvent.Success -> onLoginSuccess()
+                /* is LoginEvent.Success -> {
                     try {
                         credentialManager.createCredential(
                             context = context,
@@ -75,7 +76,7 @@ fun LoginScreen(
                         )
                     } catch (_: Exception) {}
                     onLoginSuccess()
-                }
+                }*/
                 is LoginEvent.NavigateToRegister -> onNavigateToRegister(event.email)
             }
         }
@@ -302,9 +303,9 @@ fun LoginScreen(
     }
 }
 
-// ── Shared logo composable ────────────────────────────────────────────────────
+// Shared logo composable
 
-// ── Private helpers ───────────────────────────────────────────────────────────
+// Private helpers
 
 @Composable
 private fun EmailField(

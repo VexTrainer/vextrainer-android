@@ -1,8 +1,8 @@
 package com.vextrainer.android.presentation.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Grading
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.Grading
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,8 +24,8 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Screen.QuizCategories, R.string.nav_quizzes, Icons.Default.Grading),
-    BottomNavItem(Screen.Modules,        R.string.nav_lessons,  Icons.Default.MenuBook),
+    BottomNavItem(Screen.QuizCategories, R.string.nav_quizzes, Icons.AutoMirrored.Filled.Grading),
+    BottomNavItem(Screen.Modules,        R.string.nav_lessons,  Icons.AutoMirrored.Filled.MenuBook),
     BottomNavItem(Screen.Profile,        R.string.nav_profile,  Icons.Default.Person)
 )
 
