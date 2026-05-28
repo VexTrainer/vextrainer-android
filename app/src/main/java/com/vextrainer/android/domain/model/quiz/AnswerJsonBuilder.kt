@@ -20,7 +20,7 @@ object AnswerJsonBuilder {
         """{"text":"${text.trim()}"}"""
 
     fun multipleAnswers(answerIds: List<Int>): String {
-        val idsJson = answerIds.joinToString(",", "[", "]")
+        val idsJson = answerIds.sorted().joinToString(",", "[", "]")
         return """{"answer_ids":$idsJson}"""
     }
 

@@ -210,4 +210,24 @@
     <string name="error_timeout">Request timed out. Please try again.</string>
     <string name="error_not_found">Content not found. It may have been removed.</string>
     <string name="error_server">Server error. Please try again later.</string>
+
+    <!-- dashboard -->
+    <string name="dashboard_title">Home</string>
+    <string name="nav_home">Home</string>
+    <string name="dashboard_progress_title">Your Progress: Lessons</string>
+    <string name="dashboard_modules">Modules</string>
+    <string name="dashboard_lessons">Lessons</string>
+    <string name="dashboard_topics">Topics</string>
+    <string name="dashboard_quizzes_section">Quizzes</string>
+    <string name="dashboard_quizzes_attempted">Attempted</string>
+    <string name="dashboard_quizzes_completed">Completed</string>
+    <string name="dashboard_avg_score">Avg Score</string>
+    <string name="dashboard_continue_learning">Continue Learning</string>
+    <string name="dashboard_next_topic">Next: %s</string>
+    <string name="error_load_dashboard">Failed to load dashboard</string>
+    <string name="dashboard_welcome_back">Welcome back,</string>
+    <string name="dashboard_welcome">Welcome!</string>
+    <string name="dashboard_progress_fraction">%1$d / %2$d</string>
+    <string name="dashboard_no_score">—</string>
+    <string name="dashboard_topics_read_progress">%1$d / %2$d topics read</string>
 </resources>

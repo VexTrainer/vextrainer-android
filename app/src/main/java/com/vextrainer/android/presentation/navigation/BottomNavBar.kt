@@ -3,6 +3,7 @@ package com.vextrainer.android.presentation.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Grading
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,7 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
+    BottomNavItem(Screen.Dashboard,      R.string.nav_home,    Icons.Default.Home),
     BottomNavItem(Screen.QuizCategories, R.string.nav_quizzes, Icons.AutoMirrored.Filled.Grading),
     BottomNavItem(Screen.Modules,        R.string.nav_lessons,  Icons.AutoMirrored.Filled.MenuBook),
     BottomNavItem(Screen.Profile,        R.string.nav_profile,  Icons.Default.Person)
@@ -31,6 +33,7 @@ private val bottomNavItems = listOf(
 
 /** Routes where the bottom nav is visible. */
 val bottomNavRoutes = setOf(
+    Screen.Dashboard.route,
     Screen.QuizCategories.route,
     Screen.QuizHistory.route,
     Screen.Modules.route,
@@ -50,7 +53,7 @@ fun VexBottomNavBar(navController: NavController) {
                 onClick  = {
                     if (!selected) {
                         navController.navigate(item.screen.route) {
-                            popUpTo(Screen.QuizCategories.route) { saveState = true }
+                            popUpTo(Screen.Dashboard.route) { saveState = true }
                             launchSingleTop = true
                             restoreState    = true
                         }
@@ -62,7 +65,7 @@ fun VexBottomNavBar(navController: NavController) {
                         contentDescription = stringResource(item.labelRes)
                     )
                 },
-                label  = null,   // labels removed — icons only
+                label  = null,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor   = MaterialTheme.colorScheme.primary,
                     indicatorColor      = MaterialTheme.colorScheme.primaryContainer,

@@ -14,6 +14,9 @@ sealed class Screen(val route: String) {
             else "auth/register?email=${Uri.encode(email)}"
     }
 
+    // Dashboard
+    object Dashboard : Screen("dashboard")
+
     // Quiz
     object QuizCategories : Screen("quiz/categories")
 

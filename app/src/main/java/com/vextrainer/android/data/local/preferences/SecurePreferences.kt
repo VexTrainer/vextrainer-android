@@ -79,6 +79,24 @@ class SecurePreferences @Inject constructor(
      */
     fun isLoggedIn(): Boolean = getToken() != null
 
+    /**
+     * Decodes the role claim from the stored JWT without network.
+     * Returns "Student", "User", "Admin" etc. or null if no token.
+     * role_id 2 = "Student" per the API contract.
+     */
+    fun getUserRole(): String? {
+        val token = getToken() ?: return null
+        return try {
+            val payload = token.split(".").getOrNull(1) ?: return null
+            val padded  = payload + "=".repeat((4 - payload.length % 4) % 4)
+            val decoded = String(android.util.Base64.decode(padded, android.util.Base64.URL_SAFE))
+            org.json.JSONObject(decoded).optString("role", null)
+        } catch (e: Exception) { null }
+    }
+
+    fun isStudent(): Boolean =
+        getUserRole()?.equals("Student", ignoreCase = true) == true
+
     fun clearAll() = prefs.edit().clear().apply()
 
     companion object {

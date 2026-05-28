@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.vextrainer.android.presentation.MainViewModel
 import com.vextrainer.android.presentation.ui.auth.login.LoginScreen
+import com.vextrainer.android.presentation.ui.dashboard.DashboardScreen
 import com.vextrainer.android.presentation.ui.auth.register.RegisterScreen
 import com.vextrainer.android.presentation.ui.info.AboutScreen
 import com.vextrainer.android.presentation.ui.info.ContactUsScreen
@@ -39,7 +40,7 @@ fun NavGraph(
     navController: NavHostController = rememberNavController(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
-    val startDestination = if (mainViewModel.isLoggedIn) Screen.QuizCategories.route
+    val startDestination = if (mainViewModel.isLoggedIn) Screen.Dashboard.route
                            else Screen.Login.route
 
     LaunchedEffect(navController) {
@@ -52,8 +53,8 @@ fun NavGraph(
 
     // Passed to every screen so the logo tap in VexTopAppBar navigates home.
     val goHome: () -> Unit = {
-        navController.navigate(Screen.QuizCategories.route) {
-            popUpTo(Screen.QuizCategories.route) { inclusive = false }
+        navController.navigate(Screen.Dashboard.route) {
+            popUpTo(Screen.Dashboard.route) { inclusive = false }
             launchSingleTop = true
         }
     }
@@ -74,11 +75,11 @@ fun NavGraph(
             modifier         = Modifier.padding(scaffoldPadding)
         ) {
 
-            // ── Auth — Login ──────────────────────────────────────────────
+            // Auth: Login
             composable(Screen.Login.route) {
                 LoginScreen(
                     onLoginSuccess       = {
-                        navController.navigate(Screen.QuizCategories.route) {
+                        navController.navigate(Screen.Dashboard.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
@@ -104,7 +105,26 @@ fun NavGraph(
                 )
             }
 
-            // Quiz: Categories (home)
+            // Dashboard (home
+            composable(Screen.Dashboard.route) {
+                DashboardScreen(
+                    onTopicClick        = { topicId ->
+                        navController.navigate(Screen.TopicViewer.createRoute(topicId))
+                    },
+                    onNavigateToQuizzes = {
+                        navController.navigate(Screen.QuizCategories.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToLessons = {
+                        navController.navigate(Screen.Modules.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            // Quiz: Categories
             composable(Screen.QuizCategories.route) {
                 QuizCategoryScreen(
                     onCategoryClick = { id, name ->
