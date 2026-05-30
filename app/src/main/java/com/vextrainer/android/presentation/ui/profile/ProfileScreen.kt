@@ -1,7 +1,5 @@
 package com.vextrainer.android.presentation.ui.profile
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,7 +15,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Person
@@ -52,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vextrainer.android.R
 import com.vextrainer.android.presentation.components.VexTopAppBar
+import com.vextrainer.android.BuildConfig
 
 @Composable
 fun ProfileScreen(
@@ -142,11 +144,12 @@ fun ProfileScreen(
                 }
             }
 
-            // App section
-            SectionHeader(stringResource(R.string.profile_section_app))
             MenuCard {
-                ProfileMenuItem(icon = Icons.Default.Info,
-                    label = stringResource(R.string.about_title), onClick = onAbout)
+                ProfileMenuItem(
+                    icon    = Icons.Default.Info,
+                    label   = stringResource(R.string.about_title) + "  v${BuildConfig.VERSION_NAME}",
+                    onClick = onAbout
+                )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 ProfileMenuItem(icon = Icons.Default.Mail,
                     label = stringResource(R.string.contact_title), onClick = onContactUs)
@@ -154,29 +157,29 @@ fun ProfileScreen(
                 ProfileMenuItem(icon = Icons.Default.PrivacyTip,
                     label = stringResource(R.string.privacy_title), onClick = onPrivacy)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                ProfileMenuItem(icon = Icons.Default.VolunteerActivism,
+                ProfileMenuItem(
+                    icon         = Icons.Default.VolunteerActivism,
                     label = stringResource(R.string.donate_title),
+                    trailingIcon = Icons.Default.OpenInBrowser,
                     onClick = {
                         context.startActivity(
-                            Intent(Intent.ACTION_VIEW,
-                                Uri.parse("https://vextrainer.com/Donate"))
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://vextrainer.com/Donate"))
                         )
-                    })
             }
-
-            // Account section
-            SectionHeader(stringResource(R.string.profile_section_account))
-            MenuCard {
+                )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 ProfileMenuItem(
                     icon     = Icons.Default.DeleteForever,
                     label    = stringResource(R.string.profile_delete_account),
                     sublabel = stringResource(R.string.profile_delete_account_desc),
                     iconTint = MaterialTheme.colorScheme.error,
+                    labelColor   = MaterialTheme.colorScheme.error,
+                    trailingIcon = Icons.Default.OpenInBrowser,
                     onClick  = onDeleteAccount
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
 
             Button(
                 onClick  = { showLogoutDialog = true },
@@ -194,12 +197,6 @@ fun ProfileScreen(
     }
 }
 
-@Composable
-private fun SectionHeader(title: String) {
-    Text(text = title.uppercase(), style = MaterialTheme.typography.labelLarge,
-         color = MaterialTheme.colorScheme.onSurfaceVariant,
-         modifier = Modifier.padding(horizontal = 4.dp))
-}
 
 @Composable
 private fun MenuCard(content: @Composable () -> Unit) {
@@ -216,7 +213,9 @@ private fun ProfileMenuItem(
     label: String,
     onClick: () -> Unit,
     sublabel: String? = null,
-    iconTint: Color = MaterialTheme.colorScheme.primary
+    iconTint: Color = MaterialTheme.colorScheme.primary,
+    labelColor: Color = MaterialTheme.colorScheme.onSurface,
+    trailingIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowForward
 ) {
     Row(
         modifier          = Modifier
@@ -230,13 +229,13 @@ private fun ProfileMenuItem(
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = label, style = MaterialTheme.typography.bodyLarge,
-                 color = MaterialTheme.colorScheme.onSurface)
+                 color = labelColor)
             sublabel?.let {
                 Text(text = it, style = MaterialTheme.typography.bodySmall,
-                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                     color = labelColor.copy(alpha = 0.7f))
             }
         }
-        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+        Icon(imageVector = trailingIcon,
              contentDescription = stringResource(R.string.cd_navigate_forward),
              tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
     }
