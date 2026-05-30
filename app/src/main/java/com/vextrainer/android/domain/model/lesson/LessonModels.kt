@@ -6,7 +6,7 @@ import com.vextrainer.android.data.remote.dto.lesson.ModuleDto
 import com.vextrainer.android.data.remote.dto.lesson.TopicDetailsDto
 import com.vextrainer.android.data.remote.dto.lesson.TopicSummaryDto
 
-// ── Domain models ─────────────────────────────────────────────────────────────
+// Domain models
 
 data class Module(
     val moduleId: Int,
@@ -49,6 +49,7 @@ data class TopicDetails(
     val headingLevel: Int,
     val fileName: String,
     val isRead: Boolean,
+    val isBookmarked: Boolean = false,
     val previousTopicId: Int?,
     val previousTopicTitle: String?,
     val previousFileName: String?,
@@ -107,6 +108,7 @@ fun TopicDetailsDto.toDomain() = TopicDetails(
     headingLevel      = headingLevel,
     fileName          = fileName,
     isRead            = isRead,
+    isBookmarked      = isBookmarked,
     previousTopicId   = previousTopicId,
     previousTopicTitle = previousTopicTitle,
     previousFileName  = previousFileName,

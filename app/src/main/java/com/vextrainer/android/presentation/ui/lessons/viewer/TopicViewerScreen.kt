@@ -24,8 +24,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -121,11 +124,14 @@ fun TopicViewerScreen(
                     isLoadingContent = state.isLoadingContent,
                     contentError     = state.contentError?.asString(),
                     isRead           = state.isRead,
-                    isMarkingRead    = state.isMarkingRead,
-                    markwon          = markwon,
+                    isMarkingRead      = state.isMarkingRead,
+                    isBookmarked       = state.isBookmarked,
+                    isTogglingBookmark = state.isTogglingBookmark,
+                    markwon            = markwon,
                     isDark           = isDark,
-                    onMarkRead       = viewModel::markAsRead,
-                    onPrevious       = { state.topic?.previousTopicId?.let(onPrevious) },
+                    onMarkRead         = viewModel::markAsRead,
+                    onToggleBookmark   = viewModel::toggleBookmark,
+                    onPrevious         = { state.topic?.previousTopicId?.let(onPrevious) },
                     onNext           = { state.topic?.nextTopicId?.let(onNext) },
                     onRetryContent   = { viewModel.retryContent() }
                 )
@@ -142,9 +148,12 @@ private fun TopicContent(
     contentError: String?,
     isRead: Boolean,
     isMarkingRead: Boolean,
+    isBookmarked: Boolean,
+    isTogglingBookmark: Boolean,
     markwon: Markwon,
     isDark: Boolean,
     onMarkRead: () -> Unit,
+    onToggleBookmark: () -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onRetryContent: () -> Unit
@@ -307,6 +316,21 @@ private fun TopicContent(
                         maxLines = 1
                     )
                 }
+            }
+
+            // Bookmark toggle
+            IconButton(
+                onClick = onToggleBookmark,
+                enabled = !isTogglingBookmark
+            ) {
+                Icon(
+                    imageVector        = if (isBookmarked) Icons.Default.Bookmark
+                                         else              Icons.Default.BookmarkBorder,
+                    contentDescription = stringResource(R.string.topic_bookmark_button),
+                    tint               = if (isBookmarked) MaterialTheme.colorScheme.primary
+                                         else              MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier           = Modifier.size(24.dp)
+                )
             }
 
             // Next

@@ -21,8 +21,8 @@ android {
         applicationId = "com.vextrainer.android"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.01"
+        versionCode = 14
+        versionName = "1.04"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -127,6 +127,9 @@ dependencies {
     implementation(libs.markwon.core)
     implementation(libs.markwon.syntax)
     implementation(libs.prism4j)
+    // Markdown tables
+    implementation("io.noties.markwon:ext-tables:4.6.2")
+    //implementation(libs.markwon.tables)
     // kapt("io.noties:prism4j:2.0.0:bundler")    // generates GrammarLocatorDef from @PrismBundle
 
     debugImplementation(libs.compose.ui.tooling)

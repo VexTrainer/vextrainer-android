@@ -45,6 +45,7 @@ data class TopicDetailsDto(
     val headingLevel: Int,
     val fileName: String,
     val isRead: Boolean,
+    val isBookmarked: Boolean = false,
     val previousTopicId: Int?,
     val previousTopicTitle: String?,
     val previousFileName: String?,

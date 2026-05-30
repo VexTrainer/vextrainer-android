@@ -18,6 +18,18 @@ class DashboardRepository @Inject constructor(
             Result.failure(Exception(response.message))
     }
 
+    suspend fun addBookmark(topicId: Int): Result<Unit> = safeCall {
+        val response = dashboardApi.addBookmark(topicId)
+        if (response.isSuccessful) Result.success(Unit)
+        else Result.failure(Exception("Failed to add bookmark (${response.code()})"))
+    }
+
+    suspend fun deleteBookmark(topicId: Int): Result<Unit> = safeCall {
+        val response = dashboardApi.deleteBookmark(topicId)
+        if (response.isSuccessful) Result.success(Unit)
+        else Result.failure(Exception("Failed to remove bookmark (${response.code()})"))
+    }
+
     private inline fun <T> safeCall(block: () -> Result<T>): Result<T> = try {
         block()
     } catch (e: Exception) {

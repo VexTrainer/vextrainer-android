@@ -71,6 +71,7 @@ markwon-image = { group = "io.noties.markwon", name = "image", version.ref = "ma
 markwon-image-picasso = { group = "io.noties.markwon", name = "image-picasso", version.ref = "markwon" }
 material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 # materialIconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
+# markwon-tables = { group = "io.noties.markwon", name = "ext-tables", version.ref = "markwon" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

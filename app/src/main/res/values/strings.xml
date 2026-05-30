@@ -160,7 +160,7 @@
 
    <!-- Markdown content screens — shared -->
     <string name="content_loading">Loading\u2026</string>
-    <string name="content_offline_notice">Showing offline content</string>
+    <string name="content_offline_notice">Showing cached content — pull to refresh</string>
 
    <!-- About — fallback content -->
     <string name="about_title">About VexTrainer</string>
@@ -230,4 +230,7 @@
     <string name="dashboard_progress_fraction">%1$d / %2$d</string>
     <string name="dashboard_no_score">—</string>
     <string name="dashboard_topics_read_progress">%1$d / %2$d topics read</string>
+    <string name="dashboard_bookmarks">Bookmarks</string>
+    <string name="bookmark_delete">Remove bookmark</string>
+    <string name="topic_bookmark_button">Bookmark this topic</string>
 </resources>

@@ -69,6 +69,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
 import androidx.compose.foundation.layout.PaddingValues
+import io.noties.markwon.ext.tables.TablePlugin
 
 // Shared helpers
 
@@ -82,8 +83,14 @@ private suspend fun fetchMarkdown(url: String): String? = withContext(Dispatcher
         val response = OkHttpClient()
             .newCall(Request.Builder().url(url).build())
             .execute()
-        if (response.isSuccessful) response.body?.string() else null
-    } catch (_: Exception) { null }
+        if (response.isSuccessful) response.body?.string() else {
+            android.util.Log.w("InfoScreens", "Fetch failed: HTTP ${response.code} for $url")
+            null
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("InfoScreens", "Fetch exception for $url", e)
+        null
+    }
 }
 
 // Generic markdown content screen
@@ -95,6 +102,7 @@ private fun MarkdownContentScreen(
     fallbackMarkdown: String,
     onBack: () -> Unit,
     onHomeClick: () -> Unit,
+    onContactClick: () -> Unit = {},
     bottomContent: @Composable (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -102,9 +110,29 @@ private fun MarkdownContentScreen(
 
     var markdown  by rememberSaveable { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
-    var isOffline by remember { mutableStateOf(false) }
+    // var isOffline by remember { mutableStateOf(false) }
+    var isUsingFallback by remember { mutableStateOf(false) }
 
-    val markwon      = remember(context, isDark) { Markwon.builder(context).build() }
+    val markwon = remember(context, isDark) {
+        Markwon.builder(context)
+            // .usePlugin(io.noties.markwon.ext.tables.TablePlugin.create(context))
+            .usePlugin(TablePlugin.create(context))
+            .usePlugin(object : io.noties.markwon.AbstractMarkwonPlugin() {
+                override fun configureConfiguration(
+                    builder: io.noties.markwon.MarkwonConfiguration.Builder
+                ) {
+                    builder.linkResolver { _, link ->
+                        // Route /Contact links to the in-app Contact Us screen
+                        if (link.contains("Contact", ignoreCase = true)) {
+                            onContactClick()
+                        } else {
+                            openUrl(context, link)
+                        }
+                    }
+                }
+            })
+            .build()
+    }
     val textColorInt = MaterialTheme.colorScheme.onBackground.toArgb()
     val bgColorInt   = MaterialTheme.colorScheme.background.toArgb()
 
@@ -113,10 +141,10 @@ private fun MarkdownContentScreen(
         val fetched = fetchMarkdown(contentUrl)
         if (!fetched.isNullOrBlank()) {
             markdown  = fetched
-            isOffline = false
+            isUsingFallback = false
         } else {
             markdown  = fallbackMarkdown
-            isOffline = true
+            isUsingFallback = true
         }
         isLoading = false
     }
@@ -138,7 +166,7 @@ private fun MarkdownContentScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-                    if (isOffline) {
+                    if (isUsingFallback) {
                         Surface(
                             color    = MaterialTheme.colorScheme.secondaryContainer,
                             modifier = Modifier.fillMaxWidth()
@@ -185,7 +213,8 @@ private fun MarkdownContentScreen(
 @Composable
 fun AboutScreen(
     onBack: () -> Unit,
-    onHomeClick: () -> Unit
+    onHomeClick: () -> Unit,
+    onContactClick: () -> Unit = {}
 ) {
     val context    = LocalContext.current
     val fallback   = stringResource(R.string.about_fallback, BuildConfig.VERSION_NAME)
@@ -198,6 +227,7 @@ fun AboutScreen(
         fallbackMarkdown = fallback,
         onBack           = onBack,
         onHomeClick      = onHomeClick,
+        onContactClick   = onContactClick,
         bottomContent    = {
             OutlinedButton(
                 onClick  = { openUrl(context, websiteUrl) },
@@ -218,47 +248,19 @@ fun AboutScreen(
 @Composable
 fun PrivacyScreen(
     onBack: () -> Unit,
-    onHomeClick: () -> Unit
+    onHomeClick: () -> Unit,
+    onContactClick: () -> Unit = {}
 ) {
     MarkdownContentScreen(
         title            = stringResource(R.string.privacy_title),
         contentUrl       = stringResource(R.string.privacy_content_url),
         fallbackMarkdown = stringResource(R.string.privacy_fallback),
         onBack           = onBack,
-        onHomeClick      = onHomeClick
-    )
-}
-
-// Donate
-
-@Composable
-fun DonateScreen(
-    onBack: () -> Unit,
-    onHomeClick: () -> Unit
-) {
-    val context   = LocalContext.current
-    val donateUrl = stringResource(R.string.donate_url)
-
-    MarkdownContentScreen(
-        title            = stringResource(R.string.donate_title),
-        contentUrl       = stringResource(R.string.donate_content_url),
-        fallbackMarkdown = stringResource(R.string.donate_fallback),
-        onBack           = onBack,
         onHomeClick      = onHomeClick,
-        bottomContent    = {
-            Button(
-                onClick  = { openUrl(context, donateUrl) },
-                modifier = Modifier.fillMaxWidth().height(54.dp)
-            ) {
-                Icon(Icons.Default.OpenInBrowser, contentDescription = null,
-                     modifier = Modifier.size(20.dp))
-                Text(text = stringResource(R.string.donate_button_label),
-                     modifier = Modifier.padding(start = 8.dp),
-                     style = MaterialTheme.typography.titleLarge)
-            }
-        }
+        onContactClick   = onContactClick
     )
 }
+
 
 // Contact Us
 

@@ -16,10 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -30,11 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.launch
-import androidx.compose.ui.Alignment
+////import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -45,11 +43,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vextrainer.android.R
+import com.vextrainer.android.domain.model.dashboard.BookmarkItem
 import com.vextrainer.android.domain.model.dashboard.ContinueLearningItem
 import com.vextrainer.android.domain.model.dashboard.DashboardStats
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
 import com.vextrainer.android.presentation.components.VexTopAppBar
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,15 +61,7 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Auto-refresh every time this screen becomes visible.
-    // repeatOnLifecycle(RESUMED) fires on first show AND when returning
-    // from a topic/lesson — so streak, progress etc. stay up-to-date.
-    val lifecycleOwner = LocalLifecycleOwner.current
-    androidx.compose.runtime.LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.loadDashboard()
-        }
-    }
+    // Initial load handled by ViewModel.init — pull-to-refresh for manual reload.
 
     Scaffold(
         topBar = {
@@ -99,7 +91,9 @@ fun DashboardScreen(
                     userName         = uiState.userName,
                     stats            = uiState.dashboard!!.stats,
                     continueLearning = uiState.dashboard!!.continueLearning,
-                    onTopicClick     = onTopicClick
+                    bookmarks        = uiState.dashboard!!.bookmarks,
+                    onTopicClick     = onTopicClick,
+                    onDeleteBookmark = viewModel::deleteBookmark
                 )
             }
         }
@@ -111,7 +105,9 @@ private fun DashboardContent(
     userName: String,
     stats: DashboardStats,
     continueLearning: List<ContinueLearningItem>,
-    onTopicClick: (topicId: Int) -> Unit
+    bookmarks: List<BookmarkItem>,
+    onTopicClick: (topicId: Int) -> Unit,
+    onDeleteBookmark: (topicId: Int) -> Unit
 ) {
     LazyColumn(
         contentPadding      = PaddingValues(16.dp),
@@ -221,6 +217,25 @@ private fun DashboardContent(
                                    "%.0f%%".format(stats.averageQuizScore)
                                else stringResource(R.string.dashboard_no_score),
                     modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        // Bookmarks
+        if (bookmarks.isNotEmpty()) {
+            item {
+                Text(
+                    text       = stringResource(R.string.dashboard_bookmarks),
+                    style      = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            items(bookmarks, key = { it.topicId }) { bookmark ->
+                BookmarkRow(
+                    bookmark         = bookmark,
+                    onTopicClick     = { onTopicClick(bookmark.topicId) },
+                    onDeleteBookmark = { onDeleteBookmark(bookmark.topicId) }
                 )
             }
         }
@@ -381,6 +396,41 @@ private fun ContinueLearningCard(
                 tint               = MaterialTheme.colorScheme.primary,
                 modifier           = Modifier.size(20.dp)
             )
+        }
+    }
+}
+
+// Bookmark row
+
+@Composable
+private fun BookmarkRow(
+    bookmark: BookmarkItem,
+    onTopicClick: () -> Unit,
+    onDeleteBookmark: () -> Unit
+) {
+    ElevatedCard(
+        onClick   = onTopicClick,
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text     = "${bookmark.moduleName}: ${bookmark.lessonTitle}: ${bookmark.topicTitle}",
+                style    = MaterialTheme.typography.bodyMedium,
+                color    = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onDeleteBookmark) {
+                Icon(
+                    imageVector        = Icons.Default.DeleteOutline,
+                    contentDescription = stringResource(R.string.bookmark_delete),
+                    tint               = MaterialTheme.colorScheme.error,
+                    modifier           = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

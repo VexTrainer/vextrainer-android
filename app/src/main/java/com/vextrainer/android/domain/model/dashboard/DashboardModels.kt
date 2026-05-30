@@ -1,5 +1,6 @@
 package com.vextrainer.android.domain.model.dashboard
 
+import com.vextrainer.android.data.remote.dto.dashboard.BookmarkItemDto
 import com.vextrainer.android.data.remote.dto.dashboard.ContinueLearningItemDto
 import com.vextrainer.android.data.remote.dto.dashboard.DashboardResponseDto
 import com.vextrainer.android.data.remote.dto.dashboard.DashboardStatsDto
@@ -32,9 +33,19 @@ data class ContinueLearningItem(
     val nextTopicTitle: String
 )
 
+data class BookmarkItem(
+    val moduleId: Int,
+    val moduleName: String,
+    val lessonId: Int,
+    val lessonTitle: String,
+    val topicId: Int,
+    val topicTitle: String
+)
+
 data class Dashboard(
     val stats: DashboardStats,
-    val continueLearning: List<ContinueLearningItem>
+    val continueLearning: List<ContinueLearningItem>,
+    val bookmarks: List<BookmarkItem> = emptyList()
 )
 
 fun DashboardStatsDto.toDomain() = DashboardStats(
@@ -65,7 +76,17 @@ fun ContinueLearningItemDto.toDomain() = ContinueLearningItem(
     nextTopicTitle = nextTopicTitle
 )
 
+fun BookmarkItemDto.toDomain() = BookmarkItem(
+    moduleId   = moduleId,
+    moduleName = moduleName,
+    lessonId   = lessonId,
+    lessonTitle = lessonTitle,
+    topicId    = topicId,
+    topicTitle = topicTitle
+)
+
 fun DashboardResponseDto.toDomain() = Dashboard(
     stats            = stats.toDomain(),
-    continueLearning = continueLearning.map { it.toDomain() }
+    continueLearning = continueLearning.map { it.toDomain() },
+    bookmarks        = bookmarks?.map { it.toDomain() } ?: emptyList()
 )

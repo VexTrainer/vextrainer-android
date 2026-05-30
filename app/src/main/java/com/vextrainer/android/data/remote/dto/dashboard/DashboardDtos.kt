@@ -3,9 +3,20 @@ package com.vextrainer.android.data.remote.dto.dashboard
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class BookmarkItemDto(
+    val moduleId: Int,
+    val moduleName: String,
+    val lessonId: Int,
+    val lessonTitle: String,
+    val topicId: Int,
+    val topicTitle: String
+)
+
+@JsonClass(generateAdapter = true)
 data class DashboardResponseDto(
     val stats: DashboardStatsDto,
-    val continueLearning: List<ContinueLearningItemDto>
+    val continueLearning: List<ContinueLearningItemDto>,
+    val bookmarks: List<BookmarkItemDto>? = null
 )
 
 @JsonClass(generateAdapter = true)

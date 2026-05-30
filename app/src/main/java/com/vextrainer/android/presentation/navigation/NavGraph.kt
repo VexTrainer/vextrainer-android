@@ -21,7 +21,6 @@ import com.vextrainer.android.presentation.ui.auth.register.RegisterScreen
 import com.vextrainer.android.presentation.ui.info.AboutScreen
 import com.vextrainer.android.presentation.ui.info.ContactUsScreen
 import com.vextrainer.android.presentation.ui.info.DeleteAccountScreen
-import com.vextrainer.android.presentation.ui.info.DonateScreen
 import com.vextrainer.android.presentation.ui.info.PrivacyScreen
 import com.vextrainer.android.presentation.ui.lessons.list.LessonListScreen
 import com.vextrainer.android.presentation.ui.lessons.modules.ModulesScreen
@@ -314,7 +313,6 @@ fun NavGraph(
                     onAbout         = { navController.navigate(Screen.About.route) },
                     onContactUs     = { navController.navigate(Screen.ContactUs.route) },
                     onPrivacy       = { navController.navigate(Screen.Privacy.route) },
-                    onDonate        = { navController.navigate(Screen.Donate.route) },
                     onDeleteAccount = { navController.navigate(Screen.DeleteAccount.route) },
                     onHomeClick     = goHome
                 )
@@ -324,7 +322,8 @@ fun NavGraph(
             composable(Screen.About.route) {
                 AboutScreen(
                     onBack      = { navController.popBackStack() },
-                    onHomeClick = goHome
+                    onHomeClick    = goHome,
+                    onContactClick = { navController.navigate(Screen.ContactUs.route) }
                 )
             }
             composable(Screen.ContactUs.route) {
@@ -336,13 +335,8 @@ fun NavGraph(
             composable(Screen.Privacy.route) {
                 PrivacyScreen(
                     onBack      = { navController.popBackStack() },
-                    onHomeClick = goHome
-                )
-            }
-            composable(Screen.Donate.route) {
-                DonateScreen(
-                    onBack      = { navController.popBackStack() },
-                    onHomeClick = goHome
+                    onHomeClick    = goHome,
+                    onContactClick = { navController.navigate(Screen.ContactUs.route) }
                 )
             }
             composable(Screen.DeleteAccount.route) {

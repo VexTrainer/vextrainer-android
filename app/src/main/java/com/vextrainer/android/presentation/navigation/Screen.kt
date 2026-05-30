@@ -76,6 +76,5 @@ sealed class Screen(val route: String) {
     object About         : Screen("info/about")
     object ContactUs     : Screen("info/contact")
     object Privacy       : Screen("info/privacy")
-    object Donate        : Screen("info/donate")
     object DeleteAccount : Screen("info/delete-account")
 }
