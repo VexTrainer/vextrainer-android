@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.vextrainer.android.R
 
 @Composable
@@ -75,15 +76,14 @@ fun RegisterScreen(
                 )
                 Spacer(Modifier.height(20.dp))
                 Text(
-                    text       = "Check Your Email",
+                    text       = stringResource(R.string.register_check_email_title),
                     style      = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color      = MaterialTheme.colorScheme.primary
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text      = "We've sent a confirmation link to\n${uiState.email}\n\n" +
-                                "Please check your inbox and click the link to activate your account.",
+                    text      = stringResource(R.string.register_confirmation_sent, uiState.email),
                     style     = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color     = MaterialTheme.colorScheme.onSurface
@@ -93,14 +93,14 @@ fun RegisterScreen(
                     onClick  = onNavigateToLogin,
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("Go to Sign In", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.register_go_to_sign_in), style = MaterialTheme.typography.labelLarge)
                 }
 
             } else {
                 // ── Logo ──────────────────────────────────────────────────
                 Image(
                     painter            = painterResource(R.drawable.logo_vextrainer),
-                    contentDescription = "VexTrainer",
+                    contentDescription = stringResource(R.string.app_name),
                     modifier           = Modifier.size(88.dp)
                 )
 
@@ -108,12 +108,12 @@ fun RegisterScreen(
 
                 // ── Registration form ─────────────────────────────────────
                 Text(
-                    text  = "Create Account",
+                    text  = stringResource(R.string.register_title),
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text     = "Join VexTrainer today",
+                    text     = stringResource(R.string.register_subtitle),
                     style    = MaterialTheme.typography.bodyMedium,
                     color    = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
@@ -122,7 +122,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value           = uiState.userName,
                     onValueChange   = viewModel::onUserNameChange,
-                    label           = { Text("Full Name") },
+                    label           = { Text(stringResource(R.string.label_full_name)) },
                     singleLine      = true,
                     modifier        = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -137,7 +137,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value           = uiState.email,
                     onValueChange   = viewModel::onEmailChange,
-                    label           = { Text("Email") },
+                    label           = { Text(stringResource(R.string.label_email)) },
                     singleLine      = true,
                     modifier        = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
@@ -155,7 +155,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value                = uiState.password,
                     onValueChange        = viewModel::onPasswordChange,
-                    label                = { Text("Password") },
+                    label                = { Text(stringResource(R.string.label_password)) },
                     singleLine           = true,
                     modifier             = Modifier.fillMaxWidth(),
                     visualTransformation = if (passwordVisible) VisualTransformation.None
@@ -183,7 +183,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value                = uiState.confirmPassword,
                     onValueChange        = viewModel::onConfirmPasswordChange,
-                    label                = { Text("Confirm Password") },
+                    label                = { Text(stringResource(R.string.label_confirm_password)) },
                     singleLine           = true,
                     modifier             = Modifier.fillMaxWidth(),
                     visualTransformation = PasswordVisualTransformation(),
@@ -221,13 +221,13 @@ fun RegisterScreen(
                             strokeWidth = 2.dp
                         )
                     else
-                        Text("Create Account", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.register_button), style = MaterialTheme.typography.labelLarge)
                 }
 
                 Spacer(Modifier.height(16.dp))
 
                 TextButton(onClick = onNavigateToLogin) {
-                    Text("Already have an account? Sign In")
+                    Text(stringResource(R.string.register_already_have_account))
                 }
             }
 

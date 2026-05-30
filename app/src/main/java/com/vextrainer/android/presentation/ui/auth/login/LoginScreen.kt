@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 // import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -101,22 +102,22 @@ fun LoginScreen(
             // reproduce the full launcher-icon appearance.
             Image(
                 painter            = painterResource(R.drawable.logo_vextrainer),
-                contentDescription = "VexTrainer",
+                contentDescription = stringResource(R.string.app_name),
                 modifier           = Modifier.size(88.dp)
             )
 
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text  = "VexTrainer",
+                text  = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text  = when (uiState.step) {
-                    LoginStep.INITIAL    -> "Enter your email to get started"
-                    LoginStep.PASSWORD   -> "Enter your password"
-                    LoginStep.RESET_SENT -> "Check your email"
+                    LoginStep.INITIAL    -> stringResource(R.string.login_step_email)
+                    LoginStep.PASSWORD   -> stringResource(R.string.login_step_password)
+                    LoginStep.RESET_SENT -> stringResource(R.string.login_step_reset_sent)
                 },
                 style    = MaterialTheme.typography.bodyMedium,
                 color    = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -154,7 +155,7 @@ fun LoginScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text  = "  Resend confirmation email",
+                                    text  = stringResource(R.string.login_resend_confirmation),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -169,7 +170,7 @@ fun LoginScreen(
                         enabled  = !uiState.isLoading,
                         modifier = Modifier.fillMaxWidth().height(50.dp)
                     ) {
-                        Text("Sign In", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.login_sign_in_button), style = MaterialTheme.typography.labelLarge)
                     }
 
                     Spacer(Modifier.height(10.dp))
@@ -182,7 +183,7 @@ fun LoginScreen(
                         if (uiState.isLoading)
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         else
-                            Text("Reset Password", style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(R.string.login_reset_password_button), style = MaterialTheme.typography.labelLarge)
                     }
 
                     Spacer(Modifier.height(10.dp))
@@ -194,7 +195,7 @@ fun LoginScreen(
                             contentColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
-                        Text("Sign Up", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.login_sign_up_button), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -206,7 +207,7 @@ fun LoginScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.cd_back),
                             modifier           = Modifier.size(18.dp)
                         )
                         Text(
@@ -221,7 +222,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value                = uiState.password,
                         onValueChange        = viewModel::onPasswordChange,
-                        label                = { Text("Password") },
+                        label                = { Text(stringResource(R.string.label_password)) },
                         singleLine           = true,
                         modifier             = Modifier.fillMaxWidth(),
                         visualTransformation = if (passwordVisible) VisualTransformation.None
@@ -268,7 +269,7 @@ fun LoginScreen(
                                 strokeWidth = 2.dp
                             )
                         else
-                            Text("Sign In", style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(R.string.login_sign_in_button), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -290,7 +291,7 @@ fun LoginScreen(
                     Spacer(Modifier.height(32.dp))
                     TextButton(onClick = viewModel::backToLogin) {
                         Text(
-                            text       = "Back to Sign In",
+                            text       = stringResource(R.string.login_back_to_sign_in),
                             style      = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -317,7 +318,7 @@ private fun EmailField(
     OutlinedTextField(
         value           = value,
         onValueChange   = onValueChange,
-        label           = { Text("Email") },
+        label           = { Text(stringResource(R.string.label_email)) },
         singleLine      = true,
         modifier        = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(

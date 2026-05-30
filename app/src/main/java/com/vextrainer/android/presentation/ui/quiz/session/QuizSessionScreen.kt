@@ -156,7 +156,7 @@ fun QuizSessionScreen(
     }
 }
 
-// ── Question content ──────────────────────────────────────────────────────────
+// Question content
 
 @Composable
 private fun QuizQuestionContent(
@@ -179,7 +179,7 @@ private fun QuizQuestionContent(
     ) {
         QuizProgressBar(current = uiState.progressDisplay, total = uiState.totalQuestions)
 
-        // ── Question type hint ────────────────────────────────────────────
+        // Question type hint
         val hint = when {
             uiState.isMatchingQuestion ->
                 stringResource(R.string.quiz_match_instruction)
@@ -192,7 +192,7 @@ private fun QuizQuestionContent(
                  color = MaterialTheme.colorScheme.primary)
         }
 
-        // ── Question text — rendered as Markdown ──────────────────────────
+        // Question text: rendered as Markdown
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors   = CardDefaults.cardColors(
@@ -209,7 +209,7 @@ private fun QuizQuestionContent(
             )
         }
 
-        // ── Answer options ────────────────────────────────────────────────
+        // Answer options
         when {
             uiState.isFillInBlank -> FillInBlankInput(
                 text          = uiState.fillInBlankText,
@@ -242,12 +242,12 @@ private fun QuizQuestionContent(
             }
         }
 
-        // ── Feedback / explanation — rendered as Markdown ─────────────────
+        // Feedback / explanation: rendered as Markdown
         uiState.answerResult?.let { result ->
             if (isRevealed) FeedbackCard(answerResult = result)
         }
 
-        // ── Action buttons ────────────────────────────────────────────────
+        // Action buttons
         if (!isRevealed) {
             Button(
                 onClick  = onSubmit,
@@ -274,7 +274,7 @@ private fun QuizQuestionContent(
 }
 
 
-// ── Fill-in-blank input ───────────────────────────────────────────────────────
+// Fill-in-blank input
 
 @Composable
 private fun FillInBlankInput(
@@ -288,7 +288,7 @@ private fun FillInBlankInput(
     OutlinedTextField(
         value           = text,
         onValueChange   = { if (!isRevealed) onTextChanged(it) },
-        label           = { Text("Your answer") },
+        label           = { Text(stringResource(R.string.quiz_your_answer)) },
         singleLine      = true,
         enabled         = !isRevealed,
         modifier        = Modifier.fillMaxWidth(),
@@ -302,7 +302,7 @@ private fun FillInBlankInput(
     )
 }
 
-// ── Matching question ─────────────────────────────────────────────────────────
+// Matching question
 
 private val PAIR_COLORS = listOf(
     Pair(Color(0xFFE3F2FD), Color(0xFF1565C0)),
@@ -329,9 +329,9 @@ private fun MatchingQuestionContent(
         modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // ── Left column ───────────────────────────────────────────────────
+        // Left column
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = "Component", style = MaterialTheme.typography.labelLarge,
+            Text(text = stringResource(R.string.quiz_matching_component), style = MaterialTheme.typography.labelLarge,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                  modifier = Modifier.padding(bottom = 2.dp))
 
@@ -368,9 +368,9 @@ private fun MatchingQuestionContent(
             }
         }
 
-        // ── Right column ──────────────────────────────────────────────────
+        // Right column
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = "Purpose", style = MaterialTheme.typography.labelLarge,
+            Text(text = stringResource(R.string.quiz_matching_purpose), style = MaterialTheme.typography.labelLarge,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                  modifier = Modifier.padding(bottom = 2.dp))
 
@@ -406,12 +406,12 @@ private fun MatchingQuestionContent(
     if (!isRevealed) {
         val pairedCount = matchingPairs.size
         val leftCount   = leftItems.size
-        Text(text = "$pairedCount of $leftCount paired",
+        Text(text = stringResource(R.string.quiz_matching_paired_count, pairedCount, leftCount),
              style = MaterialTheme.typography.bodySmall,
              color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (selectedLeftId != null) {
             val selName = leftItems.find { it.answerId == selectedLeftId }?.answerText ?: ""
-            Text(text = "\"$selName\" selected — now tap a Purpose",
+            Text(text = stringResource(R.string.quiz_matching_selected, selName),
                  style = MaterialTheme.typography.bodySmall,
                  color = MaterialTheme.colorScheme.primary)
         }
@@ -456,7 +456,7 @@ private fun MatchingItemButton(
     }
 }
 
-// ── Feedback card ─────────────────────────────────────────────────────────────
+// Feedback card
 
 /**
  * Shows correct/incorrect result and explanation after an answer is submitted.
@@ -496,7 +496,7 @@ private fun FeedbackCard(
     }
 }
 
-// ── Option state resolver ─────────────────────────────────────────────────────
+// Option state resolver
 
 private fun resolveOptionState(
     answer: QuizAnswer,
@@ -528,7 +528,7 @@ private fun resolveOptionState(
     }
 }
 
-// ── JSON parsers ──────────────────────────────────────────────────────────────
+// JSON parsers
 
 // Regex extracts every answer_id / answerId integer value from any JSON format:
 //   single:   {"answer_id":4306}

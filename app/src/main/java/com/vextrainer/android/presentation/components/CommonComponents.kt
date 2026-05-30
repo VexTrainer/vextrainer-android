@@ -44,8 +44,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.vextrainer.android.R
 import io.noties.markwon.Markwon
 
-// ── Loading / Error ───────────────────────────────────────────────────────────
-
+// Loading / Error
 @Composable
 fun LoadingOverlay(modifier: Modifier = Modifier) {
     Box(
@@ -85,7 +84,7 @@ fun ErrorCard(
     }
 }
 
-// ── Inline markdown → AnnotatedString ────────────────────────────────────────
+// Inline markdown → AnnotatedString
 
 /**
  * Converts a string with simple inline Markdown to an [AnnotatedString] for
@@ -114,7 +113,7 @@ fun inlineMarkdown(text: String): AnnotatedString = buildAnnotatedString {
     var i = 0
     while (i < text.length) {
         when {
-            // ── Inline code: `code` ───────────────────────────────────────
+            // Inline code: `code`
             text[i] == '`' -> {
                 val end = text.indexOf('`', i + 1)
                 if (end > i) {
@@ -124,7 +123,7 @@ fun inlineMarkdown(text: String): AnnotatedString = buildAnnotatedString {
                     append(text[i++])
                 }
             }
-            // ── Bold: **text** ────────────────────────────────────────────
+            // Bold: **text**
             text.startsWith("**", i) -> {
                 val end = text.indexOf("**", i + 2)
                 if (end > i) {
@@ -134,7 +133,7 @@ fun inlineMarkdown(text: String): AnnotatedString = buildAnnotatedString {
                     append(text[i++])
                 }
             }
-            // ── Italic: *text* (not part of **) ──────────────────────────
+            // Italic: *text* (not part of **)
             text[i] == '*' -> {
                 val end = text.indexOf('*', i + 1)
                 if (end > i) {
@@ -149,7 +148,7 @@ fun inlineMarkdown(text: String): AnnotatedString = buildAnnotatedString {
     }
 }
 
-// ── Full Markdown text (outside buttons only) ─────────────────────────────────
+// Full Markdown text (outside buttons only)
 
 /**
  * Renders [text] as full Markdown using Markwon inside a native [TextView].
@@ -196,7 +195,7 @@ fun MarkdownText(
     )
 }
 
-// ── Top app bar ───────────────────────────────────────────────────────────────
+// Top app bar
 
 /**
  * Standard top app bar for VexTrainer.
@@ -232,7 +231,7 @@ fun VexTopAppBar(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text       = "VexTrainer",
+                    text       = stringResource(R.string.app_name),
                     style      = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color      = MaterialTheme.colorScheme.onPrimary
