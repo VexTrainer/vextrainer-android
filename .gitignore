@@ -1,4 +1,5 @@
 # Android Studio default entries
+keystore.properties
 *.iml
 .gradle
 /local.properties

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,6 +57,7 @@ import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
 import com.vextrainer.android.presentation.components.VexTopAppBar
 import io.noties.markwon.Markwon
+import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.syntax.Prism4jThemeDarkula
 import io.noties.markwon.syntax.Prism4jThemeDefault
 import io.noties.markwon.syntax.SyntaxHighlightPlugin
@@ -84,6 +86,7 @@ fun TopicViewerScreen(
         Markwon.builder(context)
             .usePlugin(PicassoImagesPlugin.create(context))
             .usePlugin(SyntaxHighlightPlugin.create(prism4j, codeTheme))
+            .usePlugin(TablePlugin.create(context))
             .build()
     }
 
@@ -275,45 +278,31 @@ private fun TopicContent(
                 Spacer(Modifier.weight(1f))
             }
 
-            // Mark as Read / Already read indicator
-            if (!isRead) {
-                Button(
-                    onClick  = onMarkRead,
-                    enabled  = !isMarkingRead,
-                    modifier = Modifier.weight(2f).height(48.dp)
+            // Read status — single icon button replaces text button
+            // RadioButtonUnchecked (primary) = unread/tappable
+            // CheckCircle (green)            = read/done
+            IconButton(
+                onClick  = { if (!isRead) onMarkRead() },
+                enabled  = !isRead && !isMarkingRead,
+                modifier = Modifier.size(48.dp)
                 ) {
-                    if (isMarkingRead)
-                        CircularProgressIndicator(
-                            modifier    = Modifier.size(18.dp),
-                            color       = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
+                when {
+                    isMarkingRead -> CircularProgressIndicator(
+                        modifier    = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color       = MaterialTheme.colorScheme.primary
                         )
-                    else
-                        Text(
-                            text     = stringResource(R.string.topic_mark_read_button),
-                            style    = MaterialTheme.typography.labelLarge,
-                            maxLines = 1
-                        )
-                }
-            } else {
-                Row(
-                    modifier            = Modifier.weight(2f),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment   = Alignment.CenterVertically
-                ) {
-                    Icon(
+                    isRead -> Icon(
                         imageVector        = Icons.Default.CheckCircle,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.topic_marked_read),
                         tint               = Color(0xFF2E7D32),
-                        modifier           = Modifier.size(18.dp)
+                        modifier           = Modifier.size(28.dp)
                     )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text  = stringResource(R.string.topic_marked_read),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF2E7D32),
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
+                    else -> Icon(
+                        imageVector        = Icons.Default.RadioButtonUnchecked,
+                        contentDescription = stringResource(R.string.topic_mark_read_button),
+                        tint               = MaterialTheme.colorScheme.primary,
+                        modifier           = Modifier.size(28.dp)
                     )
                 }
             }

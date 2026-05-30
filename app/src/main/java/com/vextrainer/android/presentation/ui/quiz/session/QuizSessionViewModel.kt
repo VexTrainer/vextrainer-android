@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// ── State machine phases ──────────────────────────────────────────────────────
+// State machine phases
 
 enum class SessionPhase {
     LOADING,
@@ -36,7 +36,7 @@ enum class SessionPhase {
     ERROR
 }
 
-// ── UI State ──────────────────────────────────────────────────────────────────
+// UI State
 
 data class QuizSessionUiState(
     val phase: SessionPhase = SessionPhase.LOADING,
@@ -91,13 +91,13 @@ data class QuizSessionUiState(
         }
 }
 
-// ── Events ────────────────────────────────────────────────────────────────────
+// Events
 
 sealed class QuizSessionEvent {
     data class NavigateToResults(val attemptId: Int) : QuizSessionEvent()
 }
 
-// ── ViewModel ─────────────────────────────────────────────────────────────────
+// ViewModel
 
 @HiltViewModel
 class QuizSessionViewModel @Inject constructor(
@@ -121,7 +121,7 @@ class QuizSessionViewModel @Inject constructor(
         if (isResume) resumeSession() else loadQuestions()
     }
 
-    // ── Load / Resume ─────────────────────────────────────────────────────────
+    // Load / Resume
 
     private fun loadQuestions() {
         viewModelScope.launch {
@@ -188,7 +188,7 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Answer selection — single / multi ─────────────────────────────────────
+    // Answer selection — single / multi
 
     fun selectAnswer(answerId: Int) {
         val phase = _uiState.value.phase
@@ -215,7 +215,7 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Answer input — fill-in-blank ──────────────────────────────────────────
+    // Answer input — fill-in-blank
 
     fun onFillInBlankTextChanged(text: String) {
         _uiState.update {
@@ -227,7 +227,7 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Answer selection — matching ───────────────────────────────────────────
+    // Answer selection — matching
 
     /**
      * Called when the user taps any answer in a matching question.
@@ -301,7 +301,18 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Submit ────────────────────────────────────────────────────────────────
+    // Submit
+
+    /** Clears all matching pairs so the user can start pairing from scratch. */
+    fun resetMatchingPairs() {
+        _uiState.update {
+            it.copy(
+                matchingPairs  = emptyList(),
+                selectedLeftId = null,
+                phase          = SessionPhase.QUESTION_DISPLAYED
+            )
+        }
+    }
 
     fun submitAnswer() {
         val state = _uiState.value
@@ -356,7 +367,7 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Advance ───────────────────────────────────────────────────────────────
+    // Advance
 
     fun nextQuestion() {
         if (_uiState.value.phase != SessionPhase.ANSWER_REVEALED) return
@@ -377,7 +388,7 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Complete ──────────────────────────────────────────────────────────────
+    // Complete
 
     private fun completeQuiz() {
         viewModelScope.launch {
@@ -395,7 +406,7 @@ class QuizSessionViewModel @Inject constructor(
         }
     }
 
-    // ── Retry ─────────────────────────────────────────────────────────────────
+    // Retry
 
     fun retry() {
         when (_uiState.value.phase) {

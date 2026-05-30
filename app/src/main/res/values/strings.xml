@@ -134,7 +134,8 @@
     <string name="quiz_matching_purpose">Purpose</string>
     <string name="quiz_matching_selected">\"%1$s\" selected — now tap a Purpose</string>
     <string name="quiz_matching_paired_count">%1$d of %2$d paired</string>
-    
+    <string name="quiz_matching_reset">Reset</string>
+
    <!-- Lessons — Modules -->
     <string name="modules_title">Lessons</string>
     <string name="modules_empty">No modules available yet.</string>

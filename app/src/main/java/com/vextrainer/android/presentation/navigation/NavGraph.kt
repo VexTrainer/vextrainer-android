@@ -3,18 +3,19 @@ package com.vextrainer.android.presentation.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.vextrainer.android.presentation.MainViewModel
+import com.vextrainer.android.presentation.navigation.LocalTopNavCallbacks
+import com.vextrainer.android.presentation.navigation.TopNavCallbacks
 import com.vextrainer.android.presentation.ui.auth.login.LoginScreen
 import com.vextrainer.android.presentation.ui.dashboard.DashboardScreen
 import com.vextrainer.android.presentation.ui.auth.register.RegisterScreen
@@ -58,16 +59,34 @@ fun NavGraph(
         }
     }
 
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute   = backStackEntry?.destination?.route
-    val showBottomBar  = currentRoute in bottomNavRoutes
-
-    Scaffold(
-        bottomBar = {
-            if (showBottomBar) VexBottomNavBar(navController = navController)
+    // Build nav callbacks — consumed by VexTopAppBar via LocalTopNavCallbacks
+    val navCallbacks = TopNavCallbacks(
+        isProvided = true,
+        onLessons  = {
+            navController.navigate(Screen.Modules.route) {
+                popUpTo(Screen.Dashboard.route) { saveState = true }
+                launchSingleTop = true
+                restoreState    = true
+            }
+        },
+        onQuizzes  = {
+            navController.navigate(Screen.QuizCategories.route) {
+                popUpTo(Screen.Dashboard.route) { saveState = true }
+                launchSingleTop = true
+                restoreState    = true
         }
-    ) { scaffoldPadding ->
+        },
+        onProfile  = {
+            navController.navigate(Screen.Profile.route) {
+                popUpTo(Screen.Dashboard.route) { saveState = true }
+                launchSingleTop = true
+                restoreState    = true
+            }
+        }
+    )
 
+    Scaffold { scaffoldPadding ->
+        CompositionLocalProvider(LocalTopNavCallbacks provides navCallbacks) {
         NavHost(
             navController    = navController,
             startDestination = startDestination,
@@ -346,5 +365,6 @@ fun NavGraph(
                 )
             }
         }
+        } // CompositionLocalProvider
     }
 }

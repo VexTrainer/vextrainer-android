@@ -145,6 +145,7 @@ fun QuizSessionScreen(
                             uiState                   = uiState,
                             onSelectAnswer            = viewModel::selectAnswer,
                             onSelectMatchingAnswer    = viewModel::selectMatchingAnswer,
+                            onResetMatching           = viewModel::resetMatchingPairs,
                             onFillInBlankTextChanged  = viewModel::onFillInBlankTextChanged,
                             onSubmit                  = viewModel::submitAnswer,
                             onNext                    = viewModel::nextQuestion
@@ -164,6 +165,7 @@ private fun QuizQuestionContent(
     uiState: QuizSessionUiState,
     onSelectAnswer: (Int) -> Unit,
     onSelectMatchingAnswer: (answerId: Int, matchSide: String) -> Unit,
+    onResetMatching: () -> Unit,
     onFillInBlankTextChanged: (String) -> Unit,
     onSubmit: () -> Unit,
     onNext: () -> Unit
@@ -223,7 +225,8 @@ private fun QuizQuestionContent(
                 selectedLeftId = uiState.selectedLeftId,
                 isRevealed     = isRevealed,
                 correctRIds    = parseCorrectMatchIds(uiState.answerResult?.correctAnswerJson),
-                onPairSelected = onSelectMatchingAnswer
+                onPairSelected = onSelectMatchingAnswer,
+                onReset        = onResetMatching
             )
             else -> question.answers.forEachIndexed { index, answer ->
                 val optionState = resolveOptionState(
@@ -319,7 +322,8 @@ private fun MatchingQuestionContent(
     selectedLeftId: Int?,
     isRevealed: Boolean,
     correctRIds: List<Int>,
-    onPairSelected: (answerId: Int, matchSide: String) -> Unit
+    onPairSelected: (answerId: Int, matchSide: String) -> Unit,
+    onReset: () -> Unit = {}
 ) {
     val leftItems     = answers.filter { it.matchSide == "L" }
     val rightItems    = answers.filter { it.matchSide == "R" }
@@ -406,6 +410,12 @@ private fun MatchingQuestionContent(
     if (!isRevealed) {
         val pairedCount = matchingPairs.size
         val leftCount   = leftItems.size
+        Row(
+            modifier          = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
         Text(text = stringResource(R.string.quiz_matching_paired_count, pairedCount, leftCount),
              style = MaterialTheme.typography.bodySmall,
              color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -414,6 +424,17 @@ private fun MatchingQuestionContent(
             Text(text = stringResource(R.string.quiz_matching_selected, selName),
                  style = MaterialTheme.typography.bodySmall,
                  color = MaterialTheme.colorScheme.primary)
+                }
+            }
+            if (matchingPairs.isNotEmpty()) {
+                TextButton(onClick = onReset) {
+                    Text(
+                        text  = stringResource(R.string.quiz_matching_reset),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         }
     }
 }

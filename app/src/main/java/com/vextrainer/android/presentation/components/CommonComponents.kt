@@ -13,7 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Grading
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +48,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.vextrainer.android.R
+import com.vextrainer.android.presentation.navigation.LocalTopNavCallbacks
 import io.noties.markwon.Markwon
 
 // Loading / Error
@@ -239,7 +246,35 @@ fun VexTopAppBar(
             }
         },
         navigationIcon = {},
-        actions        = actions,
+        actions        = {
+            // Screen-specific actions first (e.g. read checkmark in TopicViewer)
+            actions()
+            // Global nav icons — shown on all authenticated screens
+            val navCbs = LocalTopNavCallbacks.current
+            if (navCbs.isProvided) {
+                IconButton(onClick = navCbs.onLessons) {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Filled.MenuBook,
+                        contentDescription = stringResource(R.string.nav_lessons),
+                        tint               = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                IconButton(onClick = navCbs.onQuizzes) {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Filled.Grading,
+                        contentDescription = stringResource(R.string.nav_quizzes),
+                        tint               = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                IconButton(onClick = navCbs.onProfile) {
+                    Icon(
+                        imageVector        = Icons.Default.Person,
+                        contentDescription = stringResource(R.string.nav_profile),
+                        tint               = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        },
         colors         = TopAppBarDefaults.topAppBarColors(
             containerColor             = MaterialTheme.colorScheme.primary,
             titleContentColor          = MaterialTheme.colorScheme.onPrimary,
