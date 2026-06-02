@@ -59,28 +59,25 @@ fun NavGraph(
         }
     }
 
-    // Build nav callbacks — consumed by VexTopAppBar via LocalTopNavCallbacks
+    // Build nav callbacks ï¿½ consumed by VexTopAppBar via LocalTopNavCallbacks
     val navCallbacks = TopNavCallbacks(
         isProvided = true,
         onLessons  = {
             navController.navigate(Screen.Modules.route) {
-                popUpTo(Screen.Dashboard.route) { saveState = true }
+                popUpTo(Screen.Dashboard.route) { inclusive = false }
                 launchSingleTop = true
-                restoreState    = true
             }
         },
         onQuizzes  = {
             navController.navigate(Screen.QuizCategories.route) {
-                popUpTo(Screen.Dashboard.route) { saveState = true }
+                popUpTo(Screen.Dashboard.route) { inclusive = false }
                 launchSingleTop = true
-                restoreState    = true
         }
         },
         onProfile  = {
             navController.navigate(Screen.Profile.route) {
-                popUpTo(Screen.Dashboard.route) { saveState = true }
+                popUpTo(Screen.Dashboard.route) { inclusive = false }
                 launchSingleTop = true
-                restoreState    = true
             }
         }
     )
