@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -102,7 +103,21 @@ private fun ResultContent(
                     color      = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(20.dp))
-                ScoreBadge(score = summary.score ?: 0.0, passingScore = summary.passingScore)
+                // For incomplete attempts score is null in DB — calculate from answers
+                val displayScore = summary.score
+                    ?: if (summary.totalQuestions > 0)
+                           summary.correctAnswers.toDouble() / summary.totalQuestions * 100.0
+                       else 0.0
+                ScoreBadge(score = displayScore, passingScore = summary.passingScore)
+                if (summary.completedDate == null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text  = stringResource(R.string.quiz_incomplete_attempt),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
                 Text(
                     text  = stringResource(

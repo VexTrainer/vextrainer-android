@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -273,15 +274,35 @@ fun QuestionResultRow(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    // Use darker, explicit text color so explanation is legible on the
-    // light green / light orange card backgrounds.
+    // Three states: correct (green), wrong (orange), unanswered (grey)
+    // userAnswerJson == null means the question was never reached/answered.
+    val isUnanswered = result.userAnswerJson == null
     val onCardColor = Color(0xFF1A1A1A)
+
+    val cardColor = when {
+        isUnanswered     -> Color(0xFFF5F5F5)   // grey  — not answered
+        result.isCorrect -> Color(0xFFF1F8E9)   // green — correct
+        else             -> Color(0xFFFFF3E0)   // orange — wrong
+    }
+    val iconVector = when {
+        isUnanswered     -> Icons.Default.RemoveCircle
+        result.isCorrect -> Icons.Default.CheckCircle
+        else             -> Icons.Default.Cancel
+    }
+    val iconTint = when {
+        isUnanswered     -> Color(0xFF9E9E9E)   // grey
+        result.isCorrect -> Color(0xFF2E7D32)   // green
+        else             -> Color(0xFFB71C1C)   // red
+    }
+    val iconCd = when {
+        isUnanswered     -> stringResource(R.string.quiz_answer_not_attempted)
+        result.isCorrect -> stringResource(R.string.quiz_answer_correct)
+        else             -> stringResource(R.string.quiz_answer_incorrect)
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(
-            containerColor = if (result.isCorrect) Color(0xFFF1F8E9) else Color(0xFFFFF3E0)
-        )
+        colors   = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
 
@@ -291,13 +312,9 @@ fun QuestionResultRow(
                 modifier          = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    imageVector        = if (result.isCorrect) Icons.Default.CheckCircle
-                                         else Icons.Default.Cancel,
-                    contentDescription = if (result.isCorrect)
-                        stringResource(R.string.quiz_answer_correct)
-                    else
-                        stringResource(R.string.quiz_answer_incorrect),
-                    tint     = if (result.isCorrect) Color(0xFF2E7D32) else Color(0xFFB71C1C),
+                    imageVector        = iconVector,
+                    contentDescription = iconCd,
+                    tint               = iconTint,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(8.dp))
@@ -308,18 +325,30 @@ fun QuestionResultRow(
                     modifier = Modifier.weight(1f),
                     maxLines = if (expanded) Int.MAX_VALUE else 2
                 )
-                IconButton(
-                    onClick  = { expanded = !expanded },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector        = if (expanded) Icons.Default.ExpandLess
-                                             else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) stringResource(R.string.cd_collapse)
-                                             else stringResource(R.string.cd_expand),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                if (!isUnanswered) {
+                    IconButton(
+                        onClick  = { expanded = !expanded },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector        = if (expanded) Icons.Default.ExpandLess
+                            else Icons.Default.ExpandMore,
+                            contentDescription = if (expanded) stringResource(R.string.cd_collapse)
+                            else stringResource(R.string.cd_expand),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+            }
+
+            //  Unanswered label 
+            if (isUnanswered) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text  = stringResource(R.string.quiz_answer_not_attempted),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF757575)
+                )
             }
 
             //  Expanded detail 

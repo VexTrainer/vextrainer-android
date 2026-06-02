@@ -99,7 +99,6 @@ private suspend fun fetchMarkdown(url: String): String? = withContext(Dispatcher
 private fun MarkdownContentScreen(
     title: String,
     contentUrl: String,
-    fallbackMarkdown: String,
     onBack: () -> Unit,
     onHomeClick: () -> Unit,
     onContactClick: () -> Unit = {},
@@ -110,9 +109,6 @@ private fun MarkdownContentScreen(
 
     var markdown  by rememberSaveable { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
-    // var isOffline by remember { mutableStateOf(false) }
-    var isUsingFallback by remember { mutableStateOf(false) }
-
     val markwon = remember(context, isDark) {
         Markwon.builder(context)
             // .usePlugin(io.noties.markwon.ext.tables.TablePlugin.create(context))
@@ -138,14 +134,7 @@ private fun MarkdownContentScreen(
 
     LaunchedEffect(contentUrl) {
         isLoading = true
-        val fetched = fetchMarkdown(contentUrl)
-        if (!fetched.isNullOrBlank()) {
-            markdown  = fetched
-            isUsingFallback = false
-        } else {
-            markdown  = fallbackMarkdown
-            isUsingFallback = true
-        }
+        markdown  = fetchMarkdown(contentUrl).orEmpty()
         isLoading = false
     }
 
@@ -166,21 +155,6 @@ private fun MarkdownContentScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-                    if (isUsingFallback) {
-                        Surface(
-                            color    = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text     = stringResource(R.string.content_offline_notice),
-                                style    = MaterialTheme.typography.bodySmall,
-                                color    = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
-                        }
-                        Spacer(Modifier.height(12.dp))
-                    }
-
                     AndroidView(
                         factory = { ctx ->
                             TextView(ctx).apply {
@@ -217,14 +191,12 @@ fun AboutScreen(
     onContactClick: () -> Unit = {}
 ) {
     val context    = LocalContext.current
-    val fallback   = stringResource(R.string.about_fallback, BuildConfig.VERSION_NAME)
     val contentUrl = stringResource(R.string.about_content_url)
     val websiteUrl = stringResource(R.string.about_website_url)
 
     MarkdownContentScreen(
         title            = stringResource(R.string.about_title),
         contentUrl       = contentUrl,
-        fallbackMarkdown = fallback,
         onBack           = onBack,
         onHomeClick      = onHomeClick,
         onContactClick   = onContactClick,
@@ -254,7 +226,6 @@ fun PrivacyScreen(
     MarkdownContentScreen(
         title            = stringResource(R.string.privacy_title),
         contentUrl       = stringResource(R.string.privacy_content_url),
-        fallbackMarkdown = stringResource(R.string.privacy_fallback),
         onBack           = onBack,
         onHomeClick      = onHomeClick,
         onContactClick   = onContactClick
