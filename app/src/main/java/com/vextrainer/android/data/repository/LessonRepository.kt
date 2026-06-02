@@ -6,6 +6,7 @@ import com.vextrainer.android.data.remote.util.safeApiCallUnit
 import com.vextrainer.android.domain.model.lesson.LessonProgress
 import com.vextrainer.android.domain.model.lesson.LessonSummary
 import com.vextrainer.android.domain.model.lesson.Module
+import com.vextrainer.android.domain.model.lesson.StreakBadgeReport
 import com.vextrainer.android.domain.model.lesson.TopicDetails
 import com.vextrainer.android.domain.model.lesson.TopicSummary
 import com.vextrainer.android.domain.model.lesson.toDomain
@@ -36,6 +37,9 @@ class LessonRepository @Inject constructor(
 
     suspend fun getProgress(): Result<LessonProgress> =
         safeApiCall { lessonApi.getProgress() }.map { it.toDomain() }
+
+    suspend fun getStreakBadgeReport(timezoneOffsetMinutes: Int): Result<StreakBadgeReport> =
+        safeApiCall { lessonApi.getStreakBadgeReport(timezoneOffsetMinutes) }.map { it.toDomain() }
 
     /**
      * Fetches raw markdown content from the web server (not the API).

@@ -32,7 +32,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-////import androidx.compose.ui.Alignment
+//import androidx.lifecycle.Lifecycle
+//import androidx.lifecycle.compose.LocalLifecycleOwner
+//import androidx.lifecycle.repeatOnLifecycle
+//import kotlinx.coroutines.launch
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -49,7 +53,6 @@ import com.vextrainer.android.domain.model.dashboard.DashboardStats
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
 import com.vextrainer.android.presentation.components.VexTopAppBar
-import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,11 +60,23 @@ fun DashboardScreen(
     onTopicClick: (topicId: Int) -> Unit,
     onNavigateToQuizzes: () -> Unit,
     onNavigateToLessons: () -> Unit,
+    onStreakClick: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Initial load handled by ViewModel.init — pull-to-refresh for manual reload.
+    // Auto-refresh every time this screen becomes visible.
+    // repeatOnLifecycle(RESUMED) fires on first show AND when returning
+    // from a topic/lesson — so streak, progress etc. stay up-to-date.
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    androidx.compose.runtime.LaunchedEffect(lifecycleOwner) {
+//        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+//            viewModel.loadDashboard()
+//        }
+//    }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.loadDashboard()
+    }
 
     Scaffold(
         topBar = {
@@ -93,7 +108,8 @@ fun DashboardScreen(
                     continueLearning = uiState.dashboard!!.continueLearning,
                     bookmarks        = uiState.dashboard!!.bookmarks,
                     onTopicClick     = onTopicClick,
-                    onDeleteBookmark = viewModel::deleteBookmark
+                    onDeleteBookmark = viewModel::deleteBookmark,
+                    onStreakClick    = onStreakClick
                 )
             }
         }
@@ -107,7 +123,8 @@ private fun DashboardContent(
     continueLearning: List<ContinueLearningItem>,
     bookmarks: List<BookmarkItem>,
     onTopicClick: (topicId: Int) -> Unit,
-    onDeleteBookmark: (topicId: Int) -> Unit
+    onDeleteBookmark: (topicId: Int) -> Unit,
+    onStreakClick: () -> Unit = {}
 ) {
     LazyColumn(
         contentPadding      = PaddingValues(16.dp),
@@ -136,9 +153,10 @@ private fun DashboardContent(
                         )
                     }
                 }
-                if (stats.readingStreak > 0) {
-                    StreakBadge(streak = stats.readingStreak)
-                }
+                StreakBadge(
+                    streak  = stats.readingStreak,
+                    onClick = onStreakClick
+                )
             }
         }
 
@@ -435,13 +453,21 @@ private fun BookmarkRow(
     }
 }
 
-// Streak badge
+// Streak badge — always visible; muted style when streak = 0
+// onClick wires to ActivityReportScreen via NavGraph
 
 @Composable
-private fun StreakBadge(streak: Int) {
+private fun StreakBadge(streak: Int, onClick: () -> Unit = {}) {
+    val active  = streak > 0
+    val bgColor = if (active) Color(0xFFFFF3E0)
+                  else MaterialTheme.colorScheme.surfaceVariant
+    val fgColor = if (active) Color(0xFFE65100)
+                  else MaterialTheme.colorScheme.onSurfaceVariant
+
     Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = Color(0xFFFFF3E0)
+        shape   = MaterialTheme.shapes.medium,
+        color   = bgColor,
+        onClick = onClick
     ) {
         Row(
             modifier          = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -450,7 +476,7 @@ private fun StreakBadge(streak: Int) {
             Icon(
                 imageVector        = Icons.Default.LocalFireDepartment,
                 contentDescription = null,
-                tint               = Color(0xFFE65100),
+                tint               = fgColor,
                 modifier           = Modifier.size(20.dp)
             )
             Spacer(Modifier.width(4.dp))
@@ -458,7 +484,7 @@ private fun StreakBadge(streak: Int) {
                 text       = streak.toString(),
                 fontSize   = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color      = Color(0xFFE65100)
+                color      = fgColor
             )
         }
     }

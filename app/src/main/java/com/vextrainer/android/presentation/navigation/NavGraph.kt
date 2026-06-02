@@ -18,6 +18,7 @@ import com.vextrainer.android.presentation.navigation.LocalTopNavCallbacks
 import com.vextrainer.android.presentation.navigation.TopNavCallbacks
 import com.vextrainer.android.presentation.ui.auth.login.LoginScreen
 import com.vextrainer.android.presentation.ui.dashboard.DashboardScreen
+import com.vextrainer.android.presentation.ui.lessons.activity.ActivityReportScreen
 import com.vextrainer.android.presentation.ui.auth.register.RegisterScreen
 import com.vextrainer.android.presentation.ui.info.AboutScreen
 import com.vextrainer.android.presentation.ui.info.ContactUsScreen
@@ -72,7 +73,7 @@ fun NavGraph(
             navController.navigate(Screen.QuizCategories.route) {
                 popUpTo(Screen.Dashboard.route) { inclusive = false }
                 launchSingleTop = true
-        }
+            }
         },
         onProfile  = {
             navController.navigate(Screen.Profile.route) {
@@ -84,11 +85,11 @@ fun NavGraph(
 
     Scaffold { scaffoldPadding ->
         CompositionLocalProvider(LocalTopNavCallbacks provides navCallbacks) {
-        NavHost(
+            NavHost(
             navController    = navController,
             startDestination = startDestination,
             modifier         = Modifier.padding(scaffoldPadding)
-        ) {
+            ) {
 
             // Auth: Login
             composable(Screen.Login.route) {
@@ -135,6 +136,9 @@ fun NavGraph(
                         navController.navigate(Screen.Modules.route) {
                             launchSingleTop = true
                         }
+                    },
+                    onStreakClick = {
+                        navController.navigate(Screen.ActivityReport.route)
                     }
                 )
             }
@@ -315,6 +319,19 @@ fun NavGraph(
                     },
                     onBack      = { navController.popBackStack() },
                     onHomeClick = goHome
+                )
+            }
+
+            // Activity Report
+            composable(Screen.ActivityReport.route) {
+                ActivityReportScreen(
+                    onTopicClick = { topicId ->
+                        navController.navigate(Screen.TopicViewer.createRoute(topicId))
+                    },
+                    onQuizClick  = { quizId ->
+                        navController.navigate(Screen.QuizDetail.createRoute(quizId))
+                    },
+                    onHomeClick  = goHome
                 )
             }
 

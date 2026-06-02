@@ -9,10 +9,6 @@
 
    <!-- Common actions -->
     <string name="action_retry">Retry</string>
-    <string name="action_loading">Loading\u2026</string>
-    <string name="action_back">Back</string>
-    <string name="label_show_password">Show</string>
-    <string name="label_hide_password">Hide</string>
 
    <!-- Common content descriptions -->
     <string name="cd_navigate_forward">Open</string>
@@ -24,14 +20,6 @@
     <string name="cd_back">Back</string>
 
    <!-- Auth — Login -->
-    <string name="login_app_title">VexTrainer</string>
-    <string name="login_subtitle">Sign in to continue</string>
-    <string name="login_field_identifier">Email or Username</string>
-    <string name="login_field_password">Password</string>
-    <string name="login_button">Sign In</string>
-    <string name="login_link_register">Don\'t have an account? Register</string>
-    <string name="login_error_empty">Please enter your email and password.</string>
-    <string name="login_error_failed">Login failed.</string>
     <string name="login_step_email">Enter your email to get started</string>
     <string name="login_step_password">Enter your password</string>
     <string name="login_step_reset_sent">Check your email</string>
@@ -42,25 +30,13 @@
     <string name="login_back_to_sign_in">Back to Sign In</string>
 
    <!-- Auth — Register -->
-    <string name="register_title">Create Account</string>
-    <string name="register_subtitle">Join VexTrainer today</string>
-    <string name="register_field_name">Full Name</string>
-    <string name="register_field_email">Email</string>
-    <string name="register_field_phone">Phone (optional)</string>
-    <string name="register_field_password">Password</string>
-    <string name="register_field_confirm_password">Confirm Password</string>
-    <string name="register_button">Create Account</string>
-    <string name="register_link_login">Already have an account? Sign In</string>
-    <string name="register_error_name_required">Name is required.</string>
-    <string name="register_error_email_required">Email is required.</string>
-    <string name="register_error_password_required">Password is required.</string>
-    <string name="register_error_password_short">Password must be at least 8 characters.</string>
-    <string name="register_error_password_mismatch">Passwords do not match.</string>
-    <string name="register_error_failed">Registration failed.</string>
     <string name="register_check_email_title">Check Your Email</string>
     <string name="register_confirmation_sent">We\'ve sent a confirmation link to\n%1$s\n\nPlease check your inbox and click the link to activate your account.</string>
     <string name="register_go_to_sign_in">Go to Sign In</string>
     <string name="register_already_have_account">Already have an account? Sign In</string>
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Join VexTrainer today</string>
+    <string name="register_button">Create Account</string>
 
    <!-- Quiz — Categories -->
     <string name="quiz_categories_title">Quiz Categories</string>
@@ -71,16 +47,13 @@
    <!-- Quiz — List -->
     <string name="quiz_list_empty">No quizzes in this category.</string>
     <string name="quiz_questions_count">%d questions</string>
-    <string name="quiz_time_limit">%d min</string>
     <string name="quiz_best_score">Best: %s%%</string>
     <string name="quiz_attempts_count">%d attempt(s)</string>
-    <string name="quiz_completed_label">Completed</string>
     <string name="error_load_quizzes">Failed to load quizzes.</string>
 
    <!-- Quiz — Detail -->
     <string name="quiz_start_button">Start Quiz</string>
     <string name="quiz_passing_score">Passing score: %s%%</string>
-    <string name="quiz_no_time_limit">No time limit</string>
     <string name="quiz_detail_your_stats">Your Statistics</string>
     <string name="quiz_detail_not_attempted">Not attempted yet</string>
     <string name="quiz_detail_category">Category: %s</string>
@@ -91,11 +64,9 @@
     <string name="quiz_question_progress">Question %1$d of %2$d</string>
     <string name="quiz_submit_button">Submit Answer</string>
     <string name="quiz_next_button">Next Question</string>
-    <string name="quiz_finish_button">See Results</string>
     <string name="quiz_correct">Correct!</string>
     <string name="quiz_incorrect">Incorrect</string>
     <string name="quiz_completing">Completing quiz\u2026</string>
-    <string name="quiz_select_answer">Select an answer to continue.</string>
     <string name="quiz_select_all_answers">Select all that apply.</string>
     <string name="quiz_match_instruction">Tap a Function, then tap its matching Purpose.</string>
     <string name="quiz_exit_dialog_title">Exit Quiz?</string>
@@ -105,11 +76,9 @@
     <string name="error_load_questions">Failed to load questions.</string>
     <string name="error_submit_answer">Failed to submit answer. Please try again.</string>
     <string name="error_complete_quiz">Failed to complete quiz.</string>
-    <string name="error_resume_quiz">Failed to resume quiz.</string>
 
    <!-- Quiz — Results -->
     <string name="quiz_result_title">Quiz Results</string>
-    <string name="quiz_score_label">%s%%</string>
     <string name="quiz_passed">PASSED</string>
     <string name="quiz_failed">FAILED</string>
     <string name="quiz_correct_answers">%1$d of %2$d correct</string>
@@ -120,12 +89,12 @@
     <string name="quiz_answer_incorrect">Incorrect</string>
     <string name="quiz_explanation_label">Explanation</string>
     <string name="error_load_results">Failed to load quiz results.</string>
+    <string name="quiz_incomplete_attempt">Incomplete — quiz was not finished</string>
+    <string name="quiz_answer_not_attempted">Not answered</string>
 
    <!-- Quiz — History -->
     <string name="quiz_history_title">Quiz History</string>
     <string name="quiz_history_empty">No quiz attempts yet.\nStart a quiz to see your history here.</string>
-    <string name="quiz_in_progress">In Progress</string>
-    <string name="quiz_resume_button">Resume</string>
     <string name="error_load_history">Failed to load quiz history.</string>
 
     <!-- Quiz matching -->
@@ -139,7 +108,6 @@
    <!-- Lessons — Modules -->
     <string name="modules_title">Lessons</string>
     <string name="modules_empty">No modules available yet.</string>
-    <string name="module_lessons_count">%d lessons</string>
     <string name="module_progress">%1$d of %2$d lessons complete</string>
     <string name="error_load_modules">Failed to load modules.</string>
 
@@ -161,15 +129,11 @@
     <string name="topic_marked_read">Marked as read</string>
     <string name="topic_prev_button">Previous</string>
     <string name="topic_next_button">Next</string>
-    <string name="topic_loading_content">Loading content\u2026</string>
     <string name="topic_content_error">Failed to load topic content.</string>
     <string name="error_load_topic">Failed to load topic details.</string>
-    <string name="error_mark_read">Failed to mark topic as read.</string>
 
    <!-- Profile -->
     <string name="profile_title">Profile</string>
-    <string name="profile_section_account">Account</string>
-    <string name="profile_section_app">App</string>
     <string name="profile_signed_in_as">Signed in as</string>
     <string name="profile_logout_button">Sign Out</string>
     <string name="profile_logout_confirm_title">Sign Out?</string>
@@ -179,44 +143,26 @@
     <string name="profile_delete_account">Delete Account</string>
     <string name="profile_delete_account_desc">Permanently remove your account and all data</string>
 
-   <!-- Markdown content screens — shared -->
-    <string name="content_loading">Loading\u2026</string>
-    <string name="content_offline_notice">Showing cached content — pull to refresh</string>
-
    <!-- About — fallback content -->
     <string name="about_title">About VexTrainer</string>
-    <string name="about_version_label">Version</string>
     <string name="about_website_url">https://vextrainer.com</string>
     <string name="about_content_url">https://vextrainer.com/content/about.md</string>
-    <string name="about_fallback">## About VexTrainer\n\nVexTrainer is an educational platform for VEX PROS robotics programming.\n\nMaster motor control, sensors, autonomous routines, PID control, and competition strategy through structured lessons and quizzes.\n\nBuilt for VEX Robotics competitors and coaches.\n\n**Version:** %1$s\n\n[vextrainer.com](https://vextrainer.com)</string>
 
    <!-- Privacy — fallback content -->
     <string name="privacy_title">Privacy Policy</string>
     <string name="privacy_content_url">https://vextrainer.com/content/privacy.md</string>
-    <string name="privacy_fallback">## Privacy Policy\n\n*Effective date: January 1, 2026*\n\n### Data We Collect\n\nWe collect your name, email address, and quiz/lesson progress to provide the VexTrainer service. We do not sell your data to third parties.\n\n### How We Use Your Data\n\nYour data is used solely to track your learning progress, authenticate your account, and improve the VexTrainer platform.\n\n### Data Storage\n\nYour data is stored securely on servers in the United States. Passwords are hashed and never stored in plain text.\n\n### Account Deletion\n\nYou can permanently delete your account and all associated data at any time from the Profile screen.\n\n### Contact\n\nFor privacy-related questions, contact us at prasad@bodepudi.com.</string>
 
    <!-- Donate — fallback content -->
     <string name="donate_title">Support VexTrainer</string>
-    <string name="donate_content_url">https://vextrainer.com/content/donate.md</string>
-    <string name="donate_button_label">Donate via PayPal</string>
-    <string name="donate_url">https://www.paypal.com/donate</string>
-    <string name="donate_fallback">## Support VexTrainer\n\nVexTrainer is free for all VEX Robotics students and coaches.\n\nIf this platform has helped your team, consider supporting its continued development.\n\n### Your support helps us:\n\n- Add new lessons and quiz content\n- Keep the platform free for students\n- Maintain servers and infrastructure\n- Build new features and improvements\n\nThank you for your support!</string>
 
    <!-- Contact Us -->
     <string name="contact_title">Contact Us</string>
-    <string name="contact_field_name">Your Name</string>
-    <string name="contact_field_email">Your Email</string>
     <string name="contact_field_subject">Category</string>
     <string name="contact_field_message">Message</string>
     <string name="contact_send_button">Send Message</string>
-    <string name="contact_sending">Sending\u2026</string>
     <string name="contact_success">Message sent! We\'ll get back to you soon.</string>
-    <string name="contact_api_pending">Message sending is not available yet.\nPlease email us directly at prasad@bodepudi.com</string>
-    <string name="contact_error_name">Name is required.</string>
     <string name="contact_error_email">A valid email is required.</string>
     <string name="contact_error_message">Message cannot be empty.</string>
-    <string name="contact_direct_email_button">Open Email App</string>
-    <string name="contact_direct_email">prasad@bodepudi.com</string>
 
    <!-- Delete Account -->
     <string name="delete_account_title">Delete Account</string>
@@ -226,8 +172,6 @@
    <!-- Generic errors -->
     <string name="error_network">Network error. Please check your connection.</string>
     <string name="error_unknown">Something went wrong. Please try again.</string>
-    <string name="error_session_expired">Your session has expired. Please sign in again.</string>
-    <string name="error_browser_not_found">No browser app found to open this link.</string>
     <string name="error_timeout">Request timed out. Please try again.</string>
     <string name="error_not_found">Content not found. It may have been removed.</string>
     <string name="error_server">Server error. Please try again later.</string>
@@ -260,4 +204,12 @@
     <string name="label_password">Password</string>
     <string name="label_full_name">Full Name</string>
     <string name="label_confirm_password">Confirm Password</string>
+
+    <!-- Streak badge report -->
+    <string name="activity_report_title">Activity Report</string>
+    <string name="activity_lessons_section">Lessons</string>
+    <string name="activity_quizzes_section">Quizzes</string>
+    <string name="activity_report_empty">No activity in the last 7 days.\nStart reading to build your streak!</string>
+    <string name="error_load_activity_report">Failed to load activity report</string>
+    <string name="quiz_status_incomplete">Incomplete</string>
 </resources>

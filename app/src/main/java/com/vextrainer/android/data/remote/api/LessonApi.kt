@@ -6,10 +6,12 @@ import com.vextrainer.android.data.remote.dto.lesson.LessonSummaryDto
 import com.vextrainer.android.data.remote.dto.lesson.MarkReadResponseDto
 import com.vextrainer.android.data.remote.dto.lesson.ModuleDto
 import com.vextrainer.android.data.remote.dto.lesson.TopicDetailsDto
+import com.vextrainer.android.data.remote.dto.lesson.StreakBadgeReportDto
 import com.vextrainer.android.data.remote.dto.lesson.TopicSummaryDto
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface LessonApi {
 
@@ -43,4 +45,9 @@ interface LessonApi {
 
     @GET("Lesson/progress")
     suspend fun getProgress(): ApiResponse<LessonProgressDto>
+
+    @GET("Lesson/streak-report")
+    suspend fun getStreakBadgeReport(
+        @Query("timezoneOffsetMinutes") timezoneOffsetMinutes: Int
+    ): ApiResponse<StreakBadgeReportDto>
 }
