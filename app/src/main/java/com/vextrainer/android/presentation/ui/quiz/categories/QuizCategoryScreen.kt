@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Icon
@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vextrainer.android.R
-import com.vextrainer.android.domain.model.quiz.QuizCategory
 import com.vextrainer.android.presentation.components.ErrorCard
 import com.vextrainer.android.presentation.components.LoadingOverlay
 import com.vextrainer.android.presentation.components.QuizCategoryCard
@@ -69,7 +68,7 @@ fun QuizCategoryScreen(
                     onRetry = viewModel::loadCategories
                 )
 
-                uiState.categories.isEmpty() -> Box(
+                uiState.flatItems.isEmpty() -> Box(
                     modifier         = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -81,8 +80,7 @@ fun QuizCategoryScreen(
 
                 else -> CategoryList(
                     heading         = stringResource(R.string.quiz_categories_title),
-                    categories      = uiState.categories,
-                    expandedIds     = uiState.expandedIds,
+                    flatItems       = uiState.flatItems,
                     onToggle        = viewModel::toggleCategory,
                     onCategoryClick = onCategoryClick
                 )
@@ -94,8 +92,7 @@ fun QuizCategoryScreen(
 @Composable
 private fun CategoryList(
     heading: String,
-    categories: List<QuizCategory>,
-    expandedIds: Set<Int>,
+    flatItems: List<CategoryListItem>,
     onToggle: (categoryId: Int) -> Unit,
     onCategoryClick: (categoryId: Int, categoryName: String) -> Unit
 ) {
@@ -103,7 +100,6 @@ private fun CategoryList(
         contentPadding      = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // ── Screen heading ────────────────────────────────────────────────
         item(key = "heading") {
             Text(
                 text       = heading,
@@ -114,41 +110,35 @@ private fun CategoryList(
             )
         }
 
-        categories.forEach { category ->
-
-            if (category.subcategories.isEmpty()) {
-                item(key = category.categoryId) {
-                    QuizCategoryCard(
-                        category   = category,
-                        onClick    = { onCategoryClick(category.categoryId, category.categoryName) },
-                        isExpanded = null
-                    )
+        // items() — LazyColumn knows the count upfront, only composes visible rows.
+        // Stable keys prevent unnecessary recomposition on expand/collapse.
+        items(
+            items = flatItems,
+            key   = { item ->
+                when (item) {
+                    is CategoryListItem.Parent -> item.category.categoryId
+                    is CategoryListItem.Child  -> "child_${item.category.categoryId}"
                 }
-            } else {
-                val isExpanded = category.categoryId in expandedIds
-
-                item(key = category.categoryId) {
-                    QuizCategoryCard(
-                        category   = category,
-                        onClick    = { onToggle(category.categoryId) },
-                        isExpanded = isExpanded
-                    )
-                }
-
-                if (isExpanded) {
-                    item(key = "subs_${category.categoryId}") {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            category.subcategories.forEach { sub ->
-                                QuizCategoryCard(
-                                    category   = sub,
-                                    onClick    = { onCategoryClick(sub.categoryId, sub.categoryName) },
-                                    isExpanded = null,
-                                    modifier   = Modifier.padding(start = 8.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+            }
+        ) { item ->
+            when (item) {
+                is CategoryListItem.Parent -> QuizCategoryCard(
+                    category   = item.category,
+                    onClick    = {
+                        if (item.category.subcategories.isNotEmpty())
+                            onToggle(item.category.categoryId)
+                        else
+                            onCategoryClick(item.category.categoryId, item.category.categoryName)
+                    },
+                    isExpanded = if (item.category.subcategories.isEmpty()) null
+                                 else item.isExpanded
+                )
+                is CategoryListItem.Child -> QuizCategoryCard(
+                    category   = item.category,
+                    onClick    = { onCategoryClick(item.category.categoryId, item.category.categoryName) },
+                    isExpanded = null,
+                    modifier   = Modifier.padding(start = 8.dp)
+                )
             }
         }
     }
