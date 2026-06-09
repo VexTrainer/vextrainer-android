@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -80,9 +83,10 @@ fun QuizCategoryScreen(
 
                 else -> CategoryList(
                     heading         = stringResource(R.string.quiz_categories_title),
-                    flatItems       = uiState.flatItems,
+                    uiState         = uiState,
                     onToggle        = viewModel::toggleCategory,
-                    onCategoryClick = onCategoryClick
+                    onCategoryClick = onCategoryClick,
+                    onLoadMore      = viewModel::loadMore
                 )
             }
         }
@@ -92,9 +96,10 @@ fun QuizCategoryScreen(
 @Composable
 private fun CategoryList(
     heading: String,
-    flatItems: List<CategoryListItem>,
+    uiState: QuizCategoryUiState,
     onToggle: (categoryId: Int) -> Unit,
-    onCategoryClick: (categoryId: Int, categoryName: String) -> Unit
+    onCategoryClick: (categoryId: Int, categoryName: String) -> Unit,
+    onLoadMore: () -> Unit
 ) {
     LazyColumn(
         contentPadding      = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
@@ -110,10 +115,9 @@ private fun CategoryList(
             )
         }
 
-        // items() — LazyColumn knows the count upfront, only composes visible rows.
-        // Stable keys prevent unnecessary recomposition on expand/collapse.
+        // Flat list — LazyColumn knows count upfront, only composes visible rows
         items(
-            items = flatItems,
+            items = uiState.flatItems,
             key   = { item ->
                 when (item) {
                     is CategoryListItem.Parent -> item.category.categoryId
@@ -139,6 +143,26 @@ private fun CategoryList(
                     isExpanded = null,
                     modifier   = Modifier.padding(start = 8.dp)
                 )
+            }
+        }
+
+        // Load more — shown only when more pages exist and not currently loading
+        if (uiState.hasMore) {
+            item(key = "load_more") {
+                Box(
+                    modifier         = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState.isLoadingMore) {
+                        CircularProgressIndicator()
+                    } else {
+                        Button(onClick = onLoadMore) {
+                            Text(stringResource(R.string.load_more))
+                        }
+                    }
+                }
             }
         }
     }

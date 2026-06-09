@@ -43,6 +43,7 @@
     <string name="quiz_categories_empty">No categories available.</string>
     <string name="quiz_count">%d quizzes</string>
     <string name="error_load_categories">Failed to load quiz categories.</string>
+    <string name="load_more">Load more</string>
 
    <!-- Quiz — List -->
     <string name="quiz_list_empty">No quizzes in this category.</string>

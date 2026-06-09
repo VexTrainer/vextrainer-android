@@ -3,8 +3,8 @@ package com.vextrainer.android.presentation.ui.quiz.categories
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vextrainer.android.R
+import com.vextrainer.android.data.repository.QuizRepository
 import com.vextrainer.android.domain.model.quiz.QuizCategory
-import com.vextrainer.android.domain.usecase.quiz.GetQuizCategoriesUseCase
 import com.vextrainer.android.presentation.util.UiText
 import com.vextrainer.android.presentation.util.toUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,10 +15,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val PAGE_SIZE = 14
+
 // Flat list item types
-// Flattening the two-level tree into a single list lets LazyColumn use items()
-// with a known count, composing only visible rows rather than iterating the
-// full tree to register slots.
 
 sealed class CategoryListItem {
     data class Parent(
@@ -32,17 +31,24 @@ sealed class CategoryListItem {
     ) : CategoryListItem()
 }
 
+// UI state
+
 data class QuizCategoryUiState(
-    val isLoading:  Boolean                 = true,   // true initially — single emission on load
-    val categories: List<QuizCategory>      = emptyList(),
-    val flatItems:  List<CategoryListItem>  = emptyList(),
-    val error:      UiText?                 = null,
-    val expandedIds: Set<Int>               = emptySet()
+    val isLoading:     Boolean                = true,
+    val isLoadingMore: Boolean                = false,
+    val categories:    List<QuizCategory>     = emptyList(),
+    val flatItems:     List<CategoryListItem> = emptyList(),
+    val expandedIds:   Set<Int>               = emptySet(),
+    val hasMore:       Boolean                = false,
+    val currentOffset: Int                    = 0,
+    val error:         UiText?                = null
 )
+
+// ViewModel
 
 @HiltViewModel
 class QuizCategoryViewModel @Inject constructor(
-    private val getQuizCategoriesUseCase: GetQuizCategoriesUseCase
+    private val quizRepository: QuizRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizCategoryUiState())
@@ -50,19 +56,21 @@ class QuizCategoryViewModel @Inject constructor(
 
     init { loadCategories() }
 
+    // Initial load (resets all state)
+
     fun loadCategories() {
         viewModelScope.launch {
-            // Single update: set loading=true and clear error — no isLoading=true then false
-            // emission (avoids an extra recomposition transition from LoadingOverlay→CategoryList).
             _uiState.update { it.copy(isLoading = true, error = null) }
-            getQuizCategoriesUseCase()
-                .onSuccess { categories ->
+            quizRepository.getCategoriesPaged(offset = 0, pageSize = PAGE_SIZE)
+                .onSuccess { page ->
                     _uiState.update {
                         it.copy(
-                            isLoading   = false,
-                            categories  = categories,
-                            expandedIds = emptySet(),
-                            flatItems   = buildFlatList(categories, emptySet())
+                            isLoading     = false,
+                            categories    = page.categories,
+                            hasMore       = page.hasMore,
+                            currentOffset = PAGE_SIZE,
+                            expandedIds   = emptySet(),
+                            flatItems     = buildFlatList(page.categories, emptySet())
                         )
                     }
                 }
@@ -76,6 +84,43 @@ class QuizCategoryViewModel @Inject constructor(
                 }
         }
     }
+
+    // Load more (appends next page to existing list)
+
+    fun loadMore() {
+        val state = _uiState.value
+        if (!state.hasMore || state.isLoadingMore) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            quizRepository.getCategoriesPaged(
+                offset   = state.currentOffset,
+                pageSize = PAGE_SIZE
+            )
+                .onSuccess { page ->
+                    val merged = state.categories + page.categories
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMore = false,
+                            categories    = merged,
+                            hasMore       = page.hasMore,
+                            currentOffset = state.currentOffset + PAGE_SIZE,
+                            flatItems     = buildFlatList(merged, it.expandedIds)
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMore = false,
+                            error         = e.toUiText(R.string.error_load_categories)
+                        )
+                    }
+                }
+        }
+    }
+
+    // Expand / collapse
 
     fun toggleCategory(categoryId: Int) {
         _uiState.update { state ->
@@ -92,11 +137,9 @@ class QuizCategoryViewModel @Inject constructor(
 }
 
 // Flat list builder
-// Converts the category tree into a flat list for LazyColumn.
-// Children only appear when their parent is in expandedIds.
 
 private fun buildFlatList(
-    categories: List<QuizCategory>,
+    categories:  List<QuizCategory>,
     expandedIds: Set<Int>
 ): List<CategoryListItem> {
     val result = ArrayList<CategoryListItem>(categories.size * 2)

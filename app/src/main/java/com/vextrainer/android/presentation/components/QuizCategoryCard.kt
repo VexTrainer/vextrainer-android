@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vextrainer.android.R
 import com.vextrainer.android.domain.model.quiz.QuizCategory
@@ -38,7 +37,7 @@ fun QuizCategoryCard(
     val isParent = isExpanded != null
 
     if (isParent) {
-        // ── Parent category — ElevatedCard with chevron ───────────────────
+        // Parent category — ElevatedCard with chevron
         ElevatedCard(
             onClick   = onClick,
             modifier  = modifier.fillMaxWidth(),
@@ -59,16 +58,6 @@ fun QuizCategoryCard(
                         ),
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
-                    category.description?.takeIf { it.isNotBlank() }?.let { desc ->
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text     = inlineMarkdown(desc),
-                            style    = MaterialTheme.typography.bodySmall,
-                            color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
                     if (isExpanded == false && category.subcategories.isNotEmpty()) {
                         Spacer(Modifier.height(2.dp))
                         Text(
@@ -93,7 +82,7 @@ fun QuizCategoryCard(
             }
         }
     } else {
-        // ── Leaf (subcategory) — plain clickable Row, no card wrapper ─────
+        // Leaf (subcategory) — plain clickable Row, no card wrapper
         // Using a Row instead of ElevatedCard removes the implicit card
         // padding that was causing large gaps between subcategory items.
         Column(modifier = modifier.fillMaxWidth()) {
@@ -110,15 +99,6 @@ fun QuizCategoryCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    category.description?.takeIf { it.isNotBlank() }?.let { desc ->
-                        Text(
-                            text     = inlineMarkdown(desc),
-                            style    = MaterialTheme.typography.bodySmall,
-                            color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
                 }
                 Icon(
                     imageVector        = Icons.AutoMirrored.Filled.ArrowForward,

@@ -2,6 +2,7 @@ package com.vextrainer.android.domain.model.quiz
 
 import com.vextrainer.android.data.remote.dto.quiz.AnswerDto
 import com.vextrainer.android.data.remote.dto.quiz.CategoryDto
+import com.vextrainer.android.data.remote.dto.quiz.CategoryPageDto
 import com.vextrainer.android.data.remote.dto.quiz.CompleteQuizResponseDto
 import com.vextrainer.android.data.remote.dto.quiz.QuestionDto
 import com.vextrainer.android.data.remote.dto.quiz.QuestionResultDto
@@ -16,7 +17,7 @@ import com.vextrainer.android.data.remote.dto.quiz.ResumeQuizDataDto
 import com.vextrainer.android.data.remote.dto.quiz.StartQuizResponseDto
 import com.vextrainer.android.data.remote.dto.quiz.SubmitAnswerResponseDto
 
-// ── Question type enum ────────────────────────────────────────────────────────
+// Question type enum
 
 enum class QuestionType(val typeId: Int) {
     SINGLE_ANSWER(1),
@@ -30,13 +31,13 @@ enum class QuestionType(val typeId: Int) {
     }
 }
 
-// ── Domain models ─────────────────────────────────────────────────────────────
+// Domain models
 
 data class QuizCategory(
     val categoryId: Int,
     val parentCategoryId: Int?,
     val categoryName: String,
-    val description: String?,
+    // val description: String?,
     val displayOrder: Int,
     val subcategories: List<QuizCategory>
 )
@@ -169,13 +170,13 @@ data class QuizHistory(
     val pageSize: Int
 )
 
-// ── DTO → Domain mappers ──────────────────────────────────────────────────────
+// DTO → Domain mappers
 
 fun CategoryDto.toDomain(): QuizCategory = QuizCategory(
     categoryId      = categoryId,
     parentCategoryId = parentCategoryId,
     categoryName    = categoryName,
-    description     = description,
+    // description     = description,
     displayOrder    = displayOrder,
     subcategories   = subcategories?.map { it.toDomain() } ?: emptyList()
 )
@@ -306,4 +307,16 @@ fun QuizHistoryResponseDto.toDomain(): QuizHistory = QuizHistory(
     totalCount = totalCount,
     page       = page,
     pageSize   = pageSize
+)
+
+/// Domain model for a paged category response
+data class CategoryPage(
+    val categories: List<QuizCategory>,
+    val hasMore:    Boolean
+)
+
+/// Maps CategoryPageDto → CategoryPage
+fun CategoryPageDto.toDomain() = CategoryPage(
+    categories = categories.map { it.toDomain() },
+    hasMore    = hasMore
 )

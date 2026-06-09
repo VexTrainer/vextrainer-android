@@ -2,6 +2,7 @@ package com.vextrainer.android.data.remote.api
 
 import com.vextrainer.android.data.remote.dto.ApiResponse
 import com.vextrainer.android.data.remote.dto.quiz.CategoryDto
+import com.vextrainer.android.data.remote.dto.quiz.CategoryPageDto
 import com.vextrainer.android.data.remote.dto.quiz.CompleteQuizResponseDto
 import com.vextrainer.android.data.remote.dto.quiz.QuizDetailDto
 import com.vextrainer.android.data.remote.dto.quiz.QuizHistoryResponseDto
@@ -20,24 +21,32 @@ import retrofit2.http.Query
 
 interface QuizApi {
 
-    // ── Categories ────────────────────────────────────────────────────────────
+    // Categories
 
     @GET("Quiz/categories")
     suspend fun getCategories(): ApiResponse<List<CategoryDto>>
+
+    @GET("Quiz/categories/paged")
+    suspend fun getCategoriesPaged(
+        @Query("offset")   offset:   Int,
+        @Query("pageSize") pageSize: Int
+    ): ApiResponse<CategoryPageDto>
+
+
 
     @GET("Quiz/categories/{categoryId}/quizzes")
     suspend fun getQuizzesByCategory(
         @Path("categoryId") categoryId: Int
     ): ApiResponse<List<QuizSummaryDto>>
 
-    // ── Quiz detail ───────────────────────────────────────────────────────────
+    // Quiz detail
 
     @GET("Quiz/quizzes/{quizId}")
     suspend fun getQuizDetail(
         @Path("quizId") quizId: Int
     ): ApiResponse<QuizDetailDto>
 
-    // ── Attempt lifecycle ─────────────────────────────────────────────────────
+    // Attempt lifecycle
 
     @POST("Quiz/quizzes/{quizId}/start")
     suspend fun startQuiz(
@@ -70,7 +79,7 @@ interface QuizApi {
         @Path("attemptId") attemptId: Int
     ): ApiResponse<ResumeQuizDataDto>
 
-    // ── History ───────────────────────────────────────────────────────────────
+    // History
 
     /** page and limit match the query params in sp_GetUserQuizHistory */
     @GET("User/history")

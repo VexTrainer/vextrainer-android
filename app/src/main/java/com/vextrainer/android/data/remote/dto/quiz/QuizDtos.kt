@@ -2,19 +2,19 @@ package com.vextrainer.android.data.remote.dto.quiz
 
 import com.squareup.moshi.JsonClass
 
-// ── Categories ────────────────────────────────────────────────────────────────
+// Categories
 
 @JsonClass(generateAdapter = true)
 data class CategoryDto(
     val categoryId: Int,
     val parentCategoryId: Int?,
     val categoryName: String,
-    val description: String?,
+    // val description: String?,
     val displayOrder: Int,
     val subcategories: List<CategoryDto>?
 )
 
-// ── Quiz list & detail ────────────────────────────────────────────────────────
+// Quiz list & detail
 
 @JsonClass(generateAdapter = true)
 data class QuizSummaryDto(
@@ -41,7 +41,7 @@ data class QuizDetailDto(
     val userBestScore: Double?
 )
 
-// ── Start quiz ────────────────────────────────────────────────────────────────
+// Start quiz
 
 @JsonClass(generateAdapter = true)
 data class StartQuizResponseDto(
@@ -51,7 +51,7 @@ data class StartQuizResponseDto(
     val totalQuestions: Int
 )
 
-// ── Questions ─────────────────────────────────────────────────────────────────
+// Questions
 
 /**
  * Nested inside QuizQuestionsResponseDto.
@@ -94,7 +94,7 @@ data class QuizQuestionsResponseDto(
     val questions: List<QuestionDto>
 )
 
-// ── Submit answer ─────────────────────────────────────────────────────────────
+// Submit answer
 
 /**
  * POST /Quiz/attempts/{id}/answer
@@ -125,7 +125,7 @@ data class SubmitAnswerResponseDto(
     val questionsAnswered: Int
 )
 
-// ── Complete quiz ─────────────────────────────────────────────────────────────
+// Complete quiz
 
 @JsonClass(generateAdapter = true)
 data class CompleteQuizResponseDto(
@@ -138,7 +138,7 @@ data class CompleteQuizResponseDto(
     val completedDate: String
 )
 
-// ── Results ───────────────────────────────────────────────────────────────────
+// Results
 
 @JsonClass(generateAdapter = true)
 data class QuizResultSummaryDto(
@@ -174,7 +174,7 @@ data class QuizResultsDto(
     val questions: List<QuestionResultDto>
 )
 
-// ── Resume ────────────────────────────────────────────────────────────────────
+// Resume
 
 /**
  * GET /Quiz/attempts/{id}/resume
@@ -192,7 +192,7 @@ data class ResumeQuizDataDto(
     val answeredQuestionIds: List<Int>
 )
 
-// ── History ───────────────────────────────────────────────────────────────────
+// History
 
 @JsonClass(generateAdapter = true)
 data class QuizHistoryItemDto(
@@ -212,4 +212,11 @@ data class QuizHistoryResponseDto(
     val totalCount: Int,
     val page: Int,
     val pageSize: Int
+)
+
+/// Paged category response from GET /Quiz/categories/paged
+@JsonClass(generateAdapter = true)
+data class CategoryPageDto(
+    val categories: List<CategoryDto>,
+    val hasMore:    Boolean
 )
