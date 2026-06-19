@@ -1,0 +1,22 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <title>VexTrainer app icon</title>
+  <rect width="1024" height="1024" rx="220" fill="#0D1B2A"/>
+  <rect x="32" y="32" width="960" height="960" rx="200" fill="none" stroke="#1A3060" stroke-width="3"/>
+  <circle cx="120" cy="120" r="8" fill="#1E3A6A"/>
+  <circle cx="904" cy="120" r="8" fill="#1E3A6A"/>
+  <circle cx="120" cy="904" r="8" fill="#1E3A6A"/>
+  <circle cx="904" cy="904" r="8" fill="#1E3A6A"/>
+  <circle cx="512" cy="120" r="5" fill="#1E3A6A"/>
+  <circle cx="512" cy="904" r="5" fill="#1E3A6A"/>
+  <circle cx="120" cy="512" r="5" fill="#1E3A6A"/>
+  <circle cx="904" cy="512" r="5" fill="#1E3A6A"/>
+  <line x1="120" y1="120" x2="904" y2="120" stroke="#152040" stroke-width="2"/>
+  <line x1="120" y1="904" x2="904" y2="904" stroke="#152040" stroke-width="2"/>
+  <line x1="120" y1="120" x2="120" y2="904" stroke="#152040" stroke-width="2"/>
+  <line x1="904" y1="120" x2="904" y2="904" stroke="#152040" stroke-width="2"/>
+  <text x="512" y="574" text-anchor="middle"
+        font-family="'Courier New', Courier, monospace"
+        font-size="248" font-weight="bold">
+    <tspan fill="#FF7043">V</tspan><tspan fill="#4FC3F7">()</tspan><tspan fill="#69F0AE">;</tspan>
+  </text>
+</svg>

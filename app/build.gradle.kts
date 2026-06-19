@@ -21,8 +21,8 @@ android {
         applicationId = "com.vextrainer.android"
         minSdk = 24
         targetSdk = 35
-        versionCode = 17
-        versionName = "1.07"
+        versionCode = 20
+        versionName = "1.10"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
